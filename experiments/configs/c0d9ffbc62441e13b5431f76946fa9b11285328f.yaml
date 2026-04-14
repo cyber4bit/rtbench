@@ -1,0 +1,144 @@
+data:
+  baseline_csv: data/baseline/paper_table2_3_external_rplc.csv
+  commit: c95c1aba24e5472fb2d8d3f0fbd5efe202b3cd60
+  gradient_points: 20
+  local_root: data/repoRT
+  repo_url: https://github.com/michaelwitting/RepoRT
+datasets:
+  expected_pretrain_count: 4157
+  external:
+  - 0028
+  - '0032'
+  - 0039
+  - 0049
+  - '0050'
+  - '0051'
+  - '0056'
+  - '0057'
+  - '0060'
+  - '0233'
+  - '0255'
+  - '0274'
+  - '0275'
+  - '0276'
+  failed_override:
+  - 0028
+  - '0032'
+  - 0039
+  - 0049
+  - '0050'
+  - '0051'
+  - '0056'
+  - '0060'
+  - '0233'
+  - '0274'
+  - '0275'
+  - '0276'
+  pretrain:
+  - 0019
+  - '0052'
+  - 0179
+  - 0180
+  - '0234'
+  - '0235'
+  - '0260'
+  - '0261'
+  - '0264'
+  - '0317'
+  - 0319
+  - '0321'
+  - '0323'
+  - '0331'
+metrics:
+  paper_avg_mae: 101.49
+  paper_avg_r2: 0.84
+  required_win_both: 8
+models:
+  CALIBRATE: true
+  CLIP_MULT: 2.5
+  EARLY_STOPPING_ROUNDS: 200
+  ENABLE_FAIL_TUNING: true
+  ENABLE_MLP: false
+  FAIL_CP_XGB:
+    colsample_bytree: 0.9
+    learning_rate: 0.015
+    max_depth: 6
+    n_estimators: 8000
+    objective: reg:absoluteerror
+    reg_lambda: 3.0
+    subsample: 0.9
+    tree_method: hist
+  FAIL_LGBM:
+    bagging_fraction: 0.9
+    bagging_freq: 1
+    feature_fraction: 0.85
+    learning_rate: 0.012
+    n_estimators: 10000
+    num_leaves: 127
+    objective: mae
+  FAIL_XGB:
+    colsample_bytree: 0.8
+    learning_rate: 0.012
+    max_depth: 7
+    n_estimators: 8000
+    objective: reg:absoluteerror
+    reg_lambda: 3.0
+    subsample: 0.95
+    tree_method: hist
+  FUSION_RANK: mae_then_r2
+  FUSION_TOP_K: 3
+  LGBM_A:
+    bagging_fraction: 0.9
+    bagging_freq: 1
+    feature_fraction: 0.8
+    learning_rate: 0.02
+    n_estimators: 8000
+    num_leaves: 63
+    objective: mae
+  LGBM_B:
+    bagging_fraction: 0.85
+    bagging_freq: 1
+    feature_fraction: 0.85
+    learning_rate: 0.03
+    n_estimators: 8000
+    num_leaves: 127
+    objective: huber
+  XGB_A:
+    colsample_bytree: 0.8
+    learning_rate: 0.02
+    max_depth: 6
+    n_estimators: 6000
+    objective: reg:absoluteerror
+    reg_lambda: 2.0
+    subsample: 0.9
+    tree_method: hist
+  XGB_B:
+    colsample_bytree: 0.85
+    learning_rate: 0.03
+    max_depth: 8
+    n_estimators: 6000
+    objective: reg:squarederror
+    reg_lambda: 2.0
+    subsample: 0.85
+    tree_method: hist
+outputs:
+  resume: false
+  root: outputs_rplc_14x14_trees_es_v1
+seeds:
+  default: 0:4
+split:
+  test: 0.1
+  train: 0.81
+  val: 0.09
+stats:
+  correction: bh_fdr
+  fdr_q: 0.05
+  test: wilcoxon_signed_rank_one_sided
+transfer_weights:
+  adaptive_source: true
+  max_scale: 2.0
+  min_scale: 0.25
+  similarity_power: 2.0
+  source: 0.2
+  target: 1.0
+  target_normalize: false

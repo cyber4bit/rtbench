@@ -1,0 +1,119 @@
+data:
+  baseline_csv: data/baseline/paper_table2_3_external_rplc.csv
+  commit: c95c1aba24e5472fb2d8d3f0fbd5efe202b3cd60
+  gradient_points: 20
+  local_root: data/repoRT
+  repo_url: https://github.com/michaelwitting/RepoRT
+datasets:
+  expected_pretrain_count: 4157
+  external:
+  - '0050'
+  - '0233'
+  pretrain:
+  - 0019
+  - '0052'
+  - 0179
+  - 0180
+  - '0234'
+  - '0235'
+  - '0260'
+  - '0261'
+  - '0264'
+  - '0317'
+  - 0319
+  - '0321'
+  - '0323'
+  - '0331'
+metrics:
+  paper_avg_mae: 101.49
+  paper_avg_r2: 0.84
+  required_win_both: 8
+models:
+  CALIBRATE: true
+  CLIP_MULT: 1.5
+  ENABLE_FAIL_TUNING: true
+  ENABLE_MLP: false
+  FAIL_CP_XGB:
+    colsample_bytree: 0.9
+    learning_rate: 0.04
+    max_depth: 6
+    n_estimators: 220
+    objective: reg:absoluteerror
+    reg_lambda: 2.5
+    subsample: 0.9
+  FAIL_LGBM:
+    bagging_fraction: 0.9
+    bagging_freq: 1
+    feature_fraction: 0.85
+    learning_rate: 0.04
+    n_estimators: 260
+    num_leaves: 127
+    objective: mae
+  FAIL_XGB:
+    colsample_bytree: 0.8
+    learning_rate: 0.04
+    max_depth: 7
+    n_estimators: 240
+    objective: reg:absoluteerror
+    reg_lambda: 2.5
+    subsample: 0.9
+  FUSION_TOP_K: 4
+  LGBM_A:
+    bagging_fraction: 0.9
+    bagging_freq: 1
+    feature_fraction: 0.8
+    learning_rate: 0.05
+    n_estimators: 220
+    num_leaves: 63
+    objective: mae
+  LGBM_B:
+    bagging_fraction: 0.85
+    bagging_freq: 1
+    feature_fraction: 0.85
+    learning_rate: 0.06
+    n_estimators: 180
+    num_leaves: 127
+    objective: huber
+  MLP_TL:
+    batch_size: 128
+    epochs_finetune: 15
+    epochs_pretrain: 8
+    lr_finetune: 0.0005
+    lr_pretrain: 0.001
+    patience: 5
+  XGB_A:
+    colsample_bytree: 0.8
+    learning_rate: 0.05
+    max_depth: 6
+    n_estimators: 200
+    objective: reg:absoluteerror
+    reg_lambda: 2.0
+    subsample: 0.9
+  XGB_B:
+    colsample_bytree: 0.85
+    learning_rate: 0.06
+    max_depth: 8
+    n_estimators: 160
+    objective: reg:squarederror
+    reg_lambda: 2.0
+    subsample: 0.85
+outputs:
+  root: outputs_phase8_smoke
+seeds:
+  default: 0:1
+split:
+  test: 0.1
+  train: 0.81
+  val: 0.09
+stats:
+  correction: bh_fdr
+  fdr_q: 0.05
+  test: wilcoxon_signed_rank_one_sided
+transfer_weights:
+  adaptive_source: true
+  max_scale: 2.0
+  min_scale: 0.25
+  similarity_power: 2.0
+  source: 0.2
+  target: 1.0
+  target_normalize: false

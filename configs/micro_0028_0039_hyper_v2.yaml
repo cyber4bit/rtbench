@@ -1,0 +1,41 @@
+_base:
+- _bases/_base_rplc_14x14.yaml
+- _bases/_base_transfer.yaml
+datasets:
+  external:
+  - 0028
+  - 0039
+models:
+  ONLY_HYPER_TL: true
+  ENABLE_HYPER_TL: true
+  ENABLE_FAIL_TUNING: false
+  FUSION_TOP_K: 1
+  CALIBRATE: false
+  ENABLE_MLP: false
+  CLIP_MULT: 10.0
+  HYPER_TL:
+    embed_dim: 128
+    mol_hidden: 512
+    cp_hidden: 256
+    dropout: 0.1
+    epochs: 80
+    batch_size: 256
+    lr: 0.001
+    weight_decay: 0.0001
+    val_frac: 0.1
+    patience: 10
+    ridge_lambdas:
+    - 0.0
+    - 0.001
+    - 0.01
+    - 0.1
+    - 1.0
+    - 10.0
+    ridge_lambda_b: 0.01
+transfer_weights:
+  adaptive_source: false
+  target_transform: none
+seeds:
+  default: 0:4
+outputs:
+  root: outputs_micro_0028_0039_hyper_v2

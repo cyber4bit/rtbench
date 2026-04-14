@@ -1,0 +1,80 @@
+_base:
+- _bases/_base_rplc_14x14.yaml
+- _bases/_base_transfer.yaml
+- _bases/_base_models_tree.yaml
+- _bases/_base_cpvec.yaml
+datasets:
+  external:
+  - 0028
+  - '0032'
+  - 0039
+  - 0049
+  - '0050'
+  - '0051'
+  - '0056'
+  - '0057'
+  - '0060'
+  - '0233'
+  - '0255'
+  - '0274'
+  - '0275'
+  - '0276'
+  failed_override:
+  - 0028
+  - '0032'
+  - 0039
+  - 0049
+  - '0050'
+  - '0051'
+  - '0056'
+  - '0060'
+  - '0233'
+  - '0274'
+  - '0275'
+  - '0276'
+models:
+  ENABLE_FAIL_TUNING: true
+  FUSION_TOP_K: 4
+  CALIBRATE: true
+  ENABLE_MLP: false
+  CLIP_MULT: 1.5
+  MLP_TL:
+    lr_pretrain: 0.001
+    lr_finetune: 0.0005
+    epochs_pretrain: 120
+    epochs_finetune: 220
+    batch_size: 128
+    patience: 20
+  FAIL_XGB:
+    n_estimators: 4200
+    max_depth: 7
+    learning_rate: 0.012
+    subsample: 0.95
+    colsample_bytree: 0.8
+    objective: reg:absoluteerror
+    reg_lambda: 3.0
+  FAIL_LGBM:
+    n_estimators: 5600
+    num_leaves: 127
+    learning_rate: 0.012
+    objective: mae
+    feature_fraction: 0.85
+    bagging_fraction: 0.9
+    bagging_freq: 1
+  FAIL_CP_XGB:
+    n_estimators: 3200
+    max_depth: 6
+    learning_rate: 0.015
+    subsample: 0.9
+    colsample_bytree: 0.9
+    objective: reg:absoluteerror
+    reg_lambda: 3.0
+transfer_weights:
+  similarity_power: 2.0
+  min_scale: 0.25
+  max_scale: 2.0
+  target_normalize: false
+seeds:
+  default: 0:29
+outputs:
+  root: outputs_rplc_14x14_cpvec_trees_v1

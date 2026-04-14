@@ -1,0 +1,180 @@
+data:
+  baseline_csv: data/baseline/paper_table2_3_external_rplc.csv
+  commit: c95c1aba24e5472fb2d8d3f0fbd5efe202b3cd60
+  cpvec:
+    ae1_batch_size: 256
+    ae1_dropout: 0.1
+    ae1_epochs: 600
+    ae1_hidden: 64
+    ae1_latent: 16
+    ae1_lr: 0.01
+    ae2_batch_size: 128
+    ae2_dropout: 0.1
+    ae2_epochs: 800
+    ae2_hidden: 256
+    ae2_latent: 32
+    ae2_lr: 0.01
+    col_w2v_batch_size: 512
+    col_w2v_dim: 16
+    col_w2v_epochs: 50
+    col_w2v_lr: 0.01
+    col_w2v_min_count: 2
+    col_w2v_neg: 6
+    col_w2v_window: 2
+    enabled: true
+    use_all_studies: true
+  gradient_points: 20
+  local_root: data/repoRT
+  repo_url: https://github.com/michaelwitting/RepoRT
+datasets:
+  expected_pretrain_count: 4157
+  external:
+  - 0028
+  - '0032'
+  - 0039
+  - 0049
+  - '0050'
+  - '0051'
+  - '0056'
+  - '0057'
+  - '0060'
+  - '0233'
+  - '0255'
+  - '0274'
+  - '0275'
+  - '0276'
+  failed_override:
+  - 0039
+  - '0051'
+  - '0233'
+  - '0050'
+  - '0275'
+  - '0276'
+  - '0274'
+  pretrain:
+  - 0019
+  - '0052'
+  - 0179
+  - 0180
+  - '0234'
+  - '0235'
+  - '0260'
+  - '0261'
+  - '0264'
+  - '0317'
+  - 0319
+  - '0321'
+  - '0323'
+  - '0331'
+metrics:
+  paper_avg_mae: 101.49
+  paper_avg_r2: 0.84
+  required_win_both: 8
+models:
+  CALIBRATE: false
+  CLIP_MULT: 2.0
+  EARLY_STOPPING_ROUNDS: 60
+  ENABLE_ANCHOR_TL: false
+  ENABLE_FAIL_TUNING: true
+  ENABLE_HYPER_TL: true
+  ENABLE_LOCAL_TRANSFORM_CANDIDATES: true
+  ENABLE_MDL_SUBSET_CANDIDATES: true
+  ENABLE_MLP: false
+  FUSION_RANK: mae_then_r2
+  FUSION_TOP_K: 1
+  HYPER_TL:
+    balance_pretrain_by_dataset: true
+    batch_size: 256
+    cp_hidden: 256
+    dropout: 0.05
+    embed_dim: 256
+    epochs: 140
+    lr: 0.001
+    mol_hidden: 1024
+    n_models: 5
+    patience: 14
+    ridge_lambda_b: 0.01
+    ridge_lambdas:
+    - 0.0
+    - 1e-5
+    - 1e-4
+    - 0.001
+    - 0.01
+    - 0.1
+    - 1.0
+    - 10.0
+    - 100.0
+    - 1000.0
+    val_frac: 0.1
+    weight_decay: 0.0001
+  LGBM_A:
+    bagging_fraction: 0.9
+    bagging_freq: 1
+    feature_fraction: 0.8
+    learning_rate: 0.02
+    n_estimators: 4000
+    num_leaves: 63
+    objective: mae
+  LGBM_B:
+    bagging_fraction: 0.85
+    bagging_freq: 1
+    feature_fraction: 0.85
+    learning_rate: 0.03
+    n_estimators: 2500
+    num_leaves: 127
+    objective: huber
+  LOCAL_LGBM:
+    bagging_fraction: 0.9
+    bagging_freq: 1
+    feature_fraction: 0.9
+    learning_rate: 0.03
+    n_estimators: 2500
+    num_leaves: 63
+    objective: mae
+  LOCAL_TARGET_TRANSFORMS:
+  - log1p
+  - gradient_norm
+  LOCAL_XGB:
+    colsample_bytree: 0.8
+    learning_rate: 0.03
+    max_depth: 6
+    n_estimators: 1800
+    objective: reg:absoluteerror
+    reg_lambda: 2.0
+    subsample: 0.9
+  ONLY_HYPER_TL: false
+  XGB_A:
+    colsample_bytree: 0.8
+    learning_rate: 0.02
+    max_depth: 6
+    n_estimators: 3000
+    objective: reg:absoluteerror
+    reg_lambda: 2.0
+    subsample: 0.9
+  XGB_B:
+    colsample_bytree: 0.85
+    learning_rate: 0.03
+    max_depth: 8
+    n_estimators: 2000
+    objective: reg:squarederror
+    reg_lambda: 2.0
+    subsample: 0.85
+outputs:
+  resume: false
+  root: outputs_rplc_14x14_cpvec_random_hybrid_v1
+seeds:
+  default: 0:29
+split:
+  strategy: random
+  test: 0.1
+  train: 0.81
+  val: 0.09
+stats:
+  correction: bh_fdr
+  fdr_q: 0.05
+  test: wilcoxon_signed_rank_one_sided
+transfer_weights:
+  adaptive_source: false
+  source: 0.2
+  target: 1.0
+  target_transform: none

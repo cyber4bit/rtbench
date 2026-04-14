@@ -1,0 +1,24 @@
+# Policy-only supplementary combo config for the final S4 single-task release.
+# Each dataset is routed to the strongest 5-seed single-task run observed in this phase.
+runs:
+  v1: "outputs_supp_eval_s4_v1/S4/comparison.csv"
+  v9: "outputs_supp_eval_s4_v9_full/S4/comparison.csv"
+  v14: "outputs_supp_eval_s4_v14_full/S4/comparison.csv"
+  v19: "outputs_supp_eval_s4_v19_5seeds/S4/comparison.csv"
+  hn: "outputs_supp_eval_s4_hyper_n10_full/S4/comparison.csv"
+
+policy:
+  "0019": "v14"
+  "0052": "v9"
+  "0179": "v9"
+  "0180": "v14"
+  "0234": "hn"
+  "0235": "hn"
+  "0260": "v1"
+  "0261": "v1"
+  "0264": "v14"
+  "0317": "hn"
+  "0319": "v14"
+  "0321": "v9"
+  "0323": "v9"
+  "0331": "hn"

@@ -1,0 +1,926 @@
+
+===== PAGE 1 =====
+
+Prediction of Retention Time by Combining Multiple Data Sets with
+Chromatographic Parameter Vectorization and Transfer Learning
+Yansong Li, Kunjie Dong, Di Yu, Dongdong Huang, Xinyu Liu, Guowang Xu, and Xiaohui Lin*
+Cite This: Anal. Chem. 2025, 97, 16788−16795
+ Read Online
+ACCESS
+Metrics & More
+ Article Recommendations *
+sı Supporting Information
+ABSTRACT: Retention time (RT) can provide orthogonal
+information to mass spectra, supporting the qualitative identi-
+fication. However, RT is influenced by experimental conditions and
+column parameters, and it is difficult to have a large amount of RT
+data in the user’s experimental conditions. Hence, various machine
+learning methods, including advanced deep learning approaches,
+have been developed for RT prediction. However, most of them
+were limited to a given column and operational conditions. In the
+meantime, data sparsity often hinders the prediction performance.
+In this study, we propose an MDL-TL method that combines
+multiple data sets to jointly train the base model. MDL-TL
+vectorizes the column and conditions (chromatographic parame-
+ters, CPs) using word2vec and autoencoders, and distinguishes the
+data sets from different chromatographic experiments by including the CPs in the compound representation. This not only augments
+the data but also introduces the CPs into the RT prediction, allowing the pretrained model to be efficiently transferred to different
+target systems by fine-tuning. MDL-TL was evaluated against five popular deep learning approaches and four machine learning
+approaches on 14 reversed-phase liquid chromatography data sets and 14 hydrophilic interaction liquid chromatography data sets,
+respectively. The results show that our method surpassed the compared methods, including transfer learning methods based on the
+METLIN small molecule retention time (SMRT) data set, in mean absolute error, median absolute error, mean relative error, and R
+2
+in most cases, demonstrating that MDL-TL is a promising approach for predicting RTs for various chromatographic systems and
+operational conditions.
+Metabolomics studies the systematic changes of metabolites in
+organisms under the interference of internal and external
+factors
+1
+and has shown its power in many fields, such as human
+health study,
+2−6
+environmental pollution,
+7
+and nutrition
+research.
+8
+Liquid chromatography−mass spectrometry (LC−
+MS) is one of the main analytical techniques for the
+metabolomics study. Metabolite identification is a bottleneck
+in nontargeted metabolomics,
+9−11
+with only about 18% of
+detected compounds being annotatable .
+12
+At present, metabolite identification is typically performed
+by matching mass spectra to entries in spectral databases.
+13
+The identification accuracy needs to be greatly improved,
+partly due to a high false-positive rate. Chromatography
+retention time (RT) can provide information orthogonal to
+mass spectra, help reduce the false positives, and improve the
+accuracy of compound identification.
+14
+However, the number
+of compounds with known RT under specific chromatographic
+conditions on a given column system is limited, primarily due
+to the limited availability of standard samples. Therefore,
+accurately predicting the RTs of compounds in a given
+chromatographic experiment is highly meaningful.
+There are two main types of RT prediction approaches,
+15
+physicochemical and statistical retention models. Quantitative
+structure-retention relationships (QSRR),
+16
+a widely used
+statistical retention model, is one of the most common
+approaches. It can directly predict RTs of compounds through
+regression without requiring chemical experiments. Machine
+learning (ML) methods, such as random forest (RF), gradient
+boosting (GB), support vector regression, and neural networks,
+are all QSRR methods and have been applied to RT
+prediction.
+17−23
+Bouwmeester et al.
+24
+compared seven ML
+algorithms for RT prediction and discovered that different
+methods show varying performance across different data sets.
+In recent years, deep learning (DL) has achieved a state-of-
+the-art performance in RT prediction. Due to the high cost of
+standard samples and the labor-intensive process of exper-
+imentally determined RTs, the amount of labeled data (i.e.,
+compounds with known RTs) in a given column system and at
+Received: March 21, 2025
+Revised: July 18, 2025
+Accepted: July 23, 2025
+Published: August 1, 2025
+Articlepubs.acs.org/ac
+© 2025 American Chemical Society
+16788
+https://doi.org/10.1021/acs.analchem.5c01703
+Anal. Chem. 2025, 97, 16788−16795
+Downloaded via CENTRAL SOUTH UNIV on November 10, 2025 at 02:18:12 (UTC).
+See https://pubs.acs.org/sharingguidelines for options on how to legitimately share published articles.
+
+
+===== PAGE 2 =====
+
+the specific operational conditions is typically limited. This
+data sparsity limits the performance of ML methods, including
+DL approaches, in RT prediction.
+To mitigate the issue of data sparsity, transfer learning (TL)
+offers a promising solution. For a new task, TL fine-tunes the
+pretrained model to improve model performance. Since the
+pretrained model has learned the prior knowledge on the
+source task, the fine-tuned model can perform effectively in
+sparse data situations. However, pretraining should be carried
+out on large-scale data sets to learn high-quality prior
+knowledge, but the data sets for RT prediction are usually
+limited in size, except for the METLIN small molecule
+retention time (SMRT) data set, which contains 80,038
+compounds.
+25
+Most of the existing TL studies for RT
+prediction
+26−29
+worked on the SMRT for pretraining.
+DNNpwa-TL
+26
+utilizes the weighted autoencoder to pretrain
+the deep neural network on SMRT, GNN-RT
+27
+pretrains the
+graph neural networks (GNN) on SMRT, 1D CNN
+28
+pretrains the convolutional neural network (CNN), and
+MDC-ANN
+29
+pretrains the model on SMRT and determines
+the optimal compound representation combination in fine-
+tuning.
+SMRT is a reversed-phase liquid chromatography (RPLC)
+data set. The base model pretrained on it is not suitable for
+transferring to other chromatographic modes, for example,
+hydrophilic interaction liquid chromatography (HILIC).
+Additionally, most RT prediction approaches focus exclusively
+on molecular representations, overlooking the chromato-
+graphic parameters (CPs), thereby limiting the transferability
+of prediction models across different chromatographic settings.
+MultiConditionRT
+30
+attempts to address this limitation by
+incorporating CPs, such as column type and eluent
+composition, into the model by numerically encoding them
+as input features.
+Though the labeled data for RT prediction in a single
+experiment are usually scarce, there exist many data sets from
+different experiments. Hence, if multiple small data sets can be
+combined to pretrain and learn prior knowledge, the
+performance of RT prediction can be significantly improved.
+RTs are determined not only by the compound structure but
+also by the CPs, commonly referred to as chromatographic
+columns and operational conditions (CCOCs), leading to RT
+variation for the same compound across different chromato-
+graphic systems. A key challenge in integrating multiple small
+data sets for pretraining lies in effectively encoding CCOC
+information into the compound representation to distinguish
+the data from different experiments.
+In this study, we propose a new RT prediction method that
+combines Multiple Data sets to Learn the prior knowledge and
+establishes the RT prediction model for a specific chromato-
+graphic experiment by Transfer Learning (MDL-TL). To mark
+the data sets from different experiments and incorporate CPs
+into the learning model, MDL-TL encodes the chromato-
+graphic column information and operational conditions using
+autoencoders (AEs) and Word2Vec. Then, MDL-TL pretrains
+on the union of multiple data sets and transfers the learned
+knowledge to the target task.
+To evaluate the performance of MDL-TL, we investigated
+two different training strategies: pretraining using the data sets
+from the same chromatographic system and from different
+chromatographic systems. We also compared MDL-TL with
+the popular ML and DL methods. The results show that (1)
+combining multiple small data sets for pretraining could
+improve RT prediction performance, and MDL-TL out-
+performed the compared methods, including the SMRT-
+based transfer learning methods, in most cases; (2) pretraining
+with data sets that have CPs similar to those of the target task
+yields better performance. The source code for the model is
+available at https://github.com/DLUT-datas/MDL-TL.git.
+■
+METHODS
+The RT of a given compound is determined by its molecular
+structure, operational conditions, and chromatographic column
+parameters. Operational conditions mainly include mobile
+phase composition, gradient elution program, flow rate, and
+column temperature. Column parameters comprise the
+chromatographic column type, length, inner diameter, particle
+size, and dead time.
+To address data sparsity and enhance RT prediction
+performance, MDL-TL integrates multiple data sets to pretrain
+together. Since the RTs of the same compound vary across
+different chromatographic methods (CMs), MDL-TL vector-
+izes CPs to distinguish the data sets from different CMs and
+incorporates the representation of chromatographic column
+information and operational conditions into the prediction
+model. As shown in Figure 1, MDL-TL consists of four main
+components: (1) encoding CPs; (2) representing compounds
+by fusing molecular representation with CP settings; (3)
+pretraining the base model on the union of multiple data sets;
+and (4) fine-tuning the base model to construct the final RT
+prediction model.
+Encoding the Chromatographic Column Information
+and Operational Conditions. Let CPset = {CP
+j
+: 1 ≤ j ≤ m}
+represent the set of CPs from the m chromatographic
+experiments. Then, CP
+j
+= (gp
+j
+, mp
+j
+, temp
+j
+, f low
+j
+, c-type
+j
+, c-len
+j
+,
+c-dia
+j
+, c-particle-size
+j
+, t0
+j
+) is the operational conditions and
+chromatographic column data for the j-th experiment, where
+gp
+j
+is the gradient program, mp
+j
+is the eluent information, temp
+j
+and f low
+j
+are column temperature and flow rate, c-type
+j
+, c-len
+j
+, c-
+dia
+j
+, c-particle-size
+j
+, and t0
+j
+are the column type, length, inner
+diameter, particle size, and dead time, respectively.
+A CP encoder (CPEncoder) (Figure 1A−D) is designed to
+encode CPs, including chromatographic column information
+and operational conditions. CPEncoder consists of two AEs
+(AE-1 and AE-2), a Word2Vec module, and a concatenation
+module. AE-1 encodes the gradient elution program, AE-2
+encodes the mobile phase composition, and the Word2Vec
+module encodes the column type. The concatenation module
+integrates the representations of the gradient elution program,
+mobile phase composition, and column information to
+generate the CP vector.
+The polarity ranges and physicochemical properties of
+different compounds can exhibit substantial variability. To
+ensure effective separation of target compounds, the gradient
+program must be adjusted based on the compound types and
+the analytical requirements. For different analytical scenarios,
+some compounds may need multisegment gradients (see
+examples in Table S1), while others can be separated in a
+linear gradient program. Therefore, in addition to differences
+in mobile phase composition, gradient programs also vary
+across experiments. Using a vector to represent the gradient
+program, such as the vector concatenating the segments, is
+straightforward. However, this may result in variable-length
+vectors across different CPs. Hence, an AE (AE-1) is
+employed.
+Analytical Chemistry pubs.acs.org/ac Article
+https://doi.org/10.1021/acs.analchem.5c01703
+Anal. Chem. 2025, 97, 16788−16795
+16789
+
+
+===== PAGE 3 =====
+
+Assume that a gradient program gp
+j
+contains k
+j
+> 0 segments,
+i.e., gp
+j
+= {X
+Grad(j)
+(i): 1≤ i ≤ k
+j
+}, where X
+Grad(j)
+(i) represents the
+i-th segment in gp
+j
+. We collect the data from m > 0 experiments
+to form D-gradient = {gp
+j
+: 1 ≤ j ≤ m}. AE-1 is trained on D-
+gradient to encode each segment in a gradient program into a
+fixed-size embedding. The representation of gp
+j
+having k
+j
+segments, z
+Grad(j)
+, is obtained by summing the embeddings of
+the k
+j
+segments.
+Gradient programs change the mobile phase composition in
+a linear or nonlinear manner. In most cases, the mobile phase
+consists of phases A and B. MDL-TL uses an AE (AE-2) to
+encode the mobile phase composition. To train AE-2, we
+collected the data from m experiments to form D-eluent = {mp
+j
+:
+1 ≤ j ≤ m}, where mp
+j
+is the mobile phase composition of the
+j-th experiment. AE-2 encodes the eluent composition mp
+j
+as
+z
+Comp(j)
+.
+Similarly, we used column type data set from RepoRT
+31
+to
+train Word2Vec to encode column type into a numerical
+vector. For experiment j, z
+CT(j)
+is the encoded vector of its
+column type.
+Detailed information on AE-1, AE-2, and Word2Vec is given
+in Supporting Information-1.
+The temperature and flow rate, as well as the chromato-
+graphic column parameters, including column length, inner
+diameter, particle size, and dead time (t0), are numerical
+features. They are presented by a six-dimensional vector
+(z
+CCP(j)
+for experiment j) (Figure 1D). For experiment j, the
+concatenation module in CPEncoder generates its CP vector v
+j
+as follows:
+= [ ]v z z z z j Grad j Com p j CT j CCP j ( ) ( ) ( ) ( )
+(1)
+Compound Representation by Fusing CP Vector and
+Molecular Descriptions. In MDL-TL, a molecular repre-
+sentation fusion module (MRFM) generates the comprehen-
+sive vectors for compounds by fusing CP vectors and
+molecular representations derived from the simplified molec-
+ular input line entry system (SMILES). MACCS
+32
+fingerprints
+and Mordred
+33
+descriptors were adopted (see Figure 1E) to
+capture molecular characteristics from different perspectives.
+The variables that are all zero were eliminated.
+For experiment j, MF
+j
+and MD
+j
+represent the compound
+MACCS fingerprints and Mordred descriptors, and MRFM
+concatenates MF
+j
+and MD
+j
+with the corresponding CP vectors
+to form the comprehensive compound representations (Figure
+1E) X
+compre(j)
+(detailed description is given in Supporting
+Information-1).
+Pretraining by Integrating Multiple Data Sets. Most
+RT data sets are small, and a small sample size tends to affect
+the prediction performance, making the model overfitting.
+MDL-TL combines multiple data sets to address this issue and
+enhance the prediction model.
+Suppose n > 0 data sets are collected. For data set j (1 ≤ j ≤
+n), MRFM computes the comprehensive representation
+X
+compre(j)
+containing the compound representations derived
+from both molecular structure and CPs. Then, the n data sets
+are combined as X
+compre
+= (X
+compre(j)
+: 1 ≤ j ≤ n). Compounds
+from different data sets can be identified by their
+corresponding CP vectors.
+X
+compre
+is divided into a training subset (X-Train) and a
+validation subset (X-Val). X-Train is used for pretraining, and
+X-Val is for evaluating the models and selecting the best one.
+Deep neural network (DNN) is one of the most popular
+models in DL due to its strong feature extraction capabilities.
+MDL-TL employs DNN as the base model, using mean
+absolute error (MAE) as the loss function (detailed
+descriptions can be found in Supporting Information-1).
+■
+EXPERIMENTS
+We conducted extensive experiments to evaluate the perform-
+ance of the proposed method MDL-TL.
+First, MDL-TL was compared with five state-of-the-art DL
+approaches (1D CNN,
+28
+GCN,
+34
+RGCN,
+34
+GNN-RT,
+27
+and
+GIN)
+35
+and four popular ML methods (RF, GB, LASSO, and
+XGBoost) in MAE, median absolute error (MedAE), mean
+relative error (MRE), and coefficient of determination (R
+2
+).
+Figure 1. Structure of the MDL-TL. CPEncoder serves as the
+chromatographic parameter encoder. In the gradient program, t
+denotes time, A and B represent the concentrations of phases A and B
+at each time point, and FR indicates the flow rate. The eluent ratio
+includes information on both phase A and phase B. MRFM
+integrating molecular representations yields a comprehensive
+representation of the molecule. The “Model” component represents
+the model training strategy used in this study.
+Analytical Chemistry pubs.acs.org/ac Article
+https://doi.org/10.1021/acs.analchem.5c01703
+Anal. Chem. 2025, 97, 16788−16795
+16790
+
+
+===== PAGE 4 =====
+
+Second, we conducted a series of experiments to explore the
+characteristics of MDL-TL. Finally, we examined the feature
+importance in the model and conducted a demo application of
+metabolite identification. Detailed experiment design and
+setting are given in Supporting Information-1.
+Data Preparation. The gradient programs of the data sets
+in RepoRT
+31
+were collected to form the data set D-gradient to
+train AE-1. Word2Vec was trained on the column types
+collected from RepoRT to encode the column type into a 10-
+dimension vector.
+We also collected the mobile phase compositions from
+RepoRT for training AE-2. The detailed information can be
+found in Table S2.
+RPLC and HILIC are two commonly used chromatographic
+separation modes. To explore the applicability of MDL-TL
+across different chromatographic modes, we examined its
+performance on 14 RPLC data sets and 14 HILIC data sets
+(Table 1), respectively. The experiment was also performed for
+pretraining on hybrid data sets (Table S3) consisting of 7
+RPLC data sets and 7 HILIC data sets. In addition, another 14
+RPLC data sets (Table S4) were collected as the external data
+Table 1. Detailed Information About the 14 RPLC and 14 HILIC Data Sets
+RPLC HILIC
+Data sets No. of compounds Retention time range (s) Data sets No. of compounds Retention time range (s)
+0019 364 48.00−1224.00 0027 303 56.40−919.92
+0052 136 66.00−1425.00 0183 307 31.80−865.20
+0179 402 49.80−914.40 0184 291 28.20−889.80
+0180 361 53.40−768.00 0185 380 54.60−690.00
+0234 132 30.90−654.00 0231 127 40.37−381.01
+0235 135 27.60−652.80 0282 72 80.23−471.09
+0260 663 84.06−898.80 0283 74 104.00−247.71
+0261 110 88.80−972.60 0372 54 124.50−1089.00
+0264 235 11.64−418.38 0373 59 99.48−1126.02
+0317 172 32.82−527.58 0374 58 126.00−1102.02
+0319 373 31.98−541.32 0375 59 136.98−1129.50
+0321 334 31.86−518.82 0376 59 142.98−1126.98
+0323 345 30.72−538.38 0377 58 206.52−1107.00
+0331 395 32.16−386.22 0378 58 162.48−1130.52
+Figure 2. Comparison of MDL-TL and five deep learning methods in MAE and R
+2
+on the 14 RPLC data sets. Up: MAE, down: R
+2
+.
+Analytical Chemistry pubs.acs.org/ac Article
+https://doi.org/10.1021/acs.analchem.5c01703
+Anal. Chem. 2025, 97, 16788−16795
+16791
+
+
+===== PAGE 5 =====
+
+sets to further examine the generalization performance of
+MDL-TL. All the data sets are from RepoRT.
+The detailed introduction of the produced comprehensive
+compound representations, the experiment parameter settings,
+and the variation of training loss with increasing epochs across
+the 14 RPLC data sets (Figure S1) is given in Supporting
+Information-1.
+■
+RESULTS AND DISCUSSION
+In this study, hyperparameter optimization was conducted via
+automated grid searching and embedded in the method (see
+Supporting Information-1).
+Performance Examination. MDL-TL was evaluated
+under both RPLC and HILIC chromatographic modes. First,
+MDL-TL was compared with five DL methods and four ML
+methods on the RPLC data sets (Table 1). Figure 2 shows the
+comparison results with DL methods in MAE and R
+2
+, and
+Figure S2 shows the results in MedAE and MRE. MDL-TL
+outperformed the five DL methods in most cases (see detailed
+discussion in Supporting Information-1). MDL-TL did not
+perform well on certain data sets (although it still out-
+performed the baseline methods). We analyzed the similarity
+of CP vectors among the data sets (Figure S3) and found that
+the data sets with lower performance tended to have lower
+similarity to the rest. Therefore, we recommend using data sets
+with chromatographic conditions similar to the target data set
+for pretraining to achieve better performance.
+Figures 3 and S4 report the comparison of MDL-TL against
+the four ML methods and show that MDL-TL achieved the
+best performance in MAE, MedAE, R
+2
+, and MRE on all data
+sets.
+The above results illustrate that MDL-TL can produce an
+RT prediction model with higher performance than the
+popular ML methods, including DL methods. Now, most of
+the existing transfer learning methods for RT prediction
+pretrain on the large RPLC data set, SMRT containing 80,038
+compounds. The experiments show that MDL-TL, pretraining
+on multiple data sets and incorporating CPs into the model,
+performed better than the TL methods based on SMRT in
+most cases. The total compound number of the 14 data sets is
+much smaller than that of SMRT. This study provides a
+feasible and efficient new method for RT prediction.
+Second, MDL-TL was evaluated on the HILIC data sets
+(Table 1) against three DL methods, 1D CNN, GCN, and
+RGCN, as well as four ML methods, RF, GB, LASSO, and
+XGBoost (GNN-RT and GIN, pretrained on SMRT, were not
+included here). Tables S5−S8 report the result and show that
+MDL-TL demonstrates superior performance compared to the
+baseline approaches.
+Transfer learning, which refers to a pretrained model being
+reused in another target task, is a popular method for
+addressing data sparsity. The pretraining quality affects the
+performance for the target task. Usually, the experiment is
+conducted on a source task with rich data. While for RT
+prediction, the number of labeled data is often very small
+except for SMRT. Hence, in RT prediction, there are not many
+studies of TL on HILIC data. The experiment shows that our
+method is an efficient method to address the data sparsity and
+Figure 3. Comparison of MDL-TL and four machine learning methods in MAE and R
+2
+on the 14 RPLC data sets. Up: MAE, down: R
+2
+.
+Analytical Chemistry pubs.acs.org/ac Article
+https://doi.org/10.1021/acs.analchem.5c01703
+Anal. Chem. 2025, 97, 16788−16795
+16792
+
+
+===== PAGE 6 =====
+
+establish the RT prediction model with a high performance for
+the HILIC system.
+The experiments on the RPLC and HILIC data sets show
+that MDL-TL is well-suited for RT prediction across various
+chromatographic systems. Integrating multiple data sets for
+pretraining can lead to a high-performance prediction model.
+The compound numbers of the 14 RPLC and 14 HILIC data
+sets are 4157 and 1959, respectively; they are all much smaller
+than 80,038 of the SMRT data.
+Performance on the 14 External RPLC Data Sets.
+Once a base model is established, can it be directly used for a
+new task after fine-tuning? To investigate this, MDL-TL was
+evaluated on 14 external RPLC data sets (Table S4) that were
+not involved in the pretraining. The base model pretrained on
+the RPLC data sets in Table 1 was directly fine-tuned on the
+external data sets. Tables 2, 3, S9, and S10 are the comparison
+of MDL-TL with DL and ML methods. MDL-TL surpassed
+the compared baselines in most cases. A detailed discussion is
+given in Supporting Information-1.
+Hence, the pretrained base model can be effectively
+transferred to the target tasks, even if the data of the target
+task were not involved in pretraining. For a new task, the
+existing pretrained base model can be directly adopted, or a
+new one can be pretrained by combining the data of the new
+task with the previously collected data. Usually, the latter
+method is more efficient than the former one.
+Performance Examination on 14 Mixed Data Sets. To
+investigate whether the data used for pretraining must be from
+the same chromatographic mode, MDL-TL was evaluated on
+the 14 mixed data sets (Table S3). The results (Tables S11−
+S14) indicate that MDL-TL pretraining on the mixed data sets
+outperformed the compared methods but showed a worse fit
+than MDL-TL pretraining on the data sets from the same
+chromatographic mode. Therefore, it is recommended to
+pretrain on data sets from the same chromatographic system as
+the target task for better performance.
+The Impact of Data Set Quantity on the Base Model
+Pretraining. MDL-TL integrates multiple data sets for
+pretraining. How many data sets should be collected? We
+took the 14 RPLC data sets (Table 1) to explore this issue.
+The data with different sizes for pretraining were collected in
+four manners. As shown in Tables S15−S24, the number of
+Table 2. Comparison of MDL-TL and Five Deep Learning Methods on the 14 External RPLC Data Sets in MAE and R
+2
+MAE (s) R
+2
+Data sets MDL-TL 1D CNN GCN RGCN GNN-RT GIN MDL-TL 1D CNN GCN RGCN GNN-RT GIN
+0028 147.77 244.46 302.20 324.34 285.23 314.92 0.85 0.47 0.37 0.34 0.45 0.42
+0032 196.63 293.04 484.98 486.05 320.72 373.63 0.91 0.50 0.60 0.57 0.77 0.72
+0039 404.43 806.38 1057.95 1359.60 586.94 466.08 0.85 −0.02 0.21 −0.36 0.61 0.78
+0049 30.69 53.02 54.63 54.31 53.40 37.73 0.93 0.74 0.78 0.75 0.82 0.89
+0050 56.73 71.43 73.00 66.13 72.57 58.43 0.70 0.18 0.65 0.65 0.36 0.62
+0051 213.18 263.48 329.98 320.11 205.30 256.72 0.88 0.69 0.69 0.67 0.86 0.81
+0056 43.43 43.55 42.96 50.57 44.70 32.31 0.75 0.55 0.74 0.68 0.76 0.86
+0057 67.72 55.75 73.40 78.26 92.28 67.85 0.65 0.65 0.58 0.57 0.46 0.63
+0060 12.23 12.29 12.61 13.89 10.25 11.23 0.80 0.75 0.76 0.72 0.85 0.80
+0233 8.75 18.61 46.41 67.32 49.16 20.51 0.98 0.95 0.84 0.70 0.81 0.92
+0255 12.88 24.23 32.49 35.75 27.58 15.60 0.93 0.74 0.66 0.66 0.78 0.92
+0274 83.30 112.09 147.27 164.23 97.93 86.50 0.80 0.51 0.43 0.26 0.76 0.77
+0275 74.51 119.17 140.23 162.21 116.18 90.16 0.84 0.55 0.49 0.28 0.66 0.78
+0276 68.68 99.93 130.32 143.62 86.87 88.04 0.83 0.46 0.44 0.34 0.77 0.71
+AVG. 101.49 158.39 209.17 237.60 146.37 137.12 0.84 0.55 0.59 0.49 0.69 0.76
+W/T/L 1/0/13 1/0/13 0/0/14 2/0/12 2/0/12 0/1/13 0/0/14 0/0/14 2/0/12 1/1/12
+Table 3. Comparison of MDL-TL and Four Machine Learning Methods on the 14 External RPLC Data Sets in MAE and R
+2
+MAE (s) R
+2
+Data sets MDL-TL GB XGBoost LASSO RF MDL-TL GB XGBoost LASSO RF
+0028 147.77 313.70 368.03 362.29 363.88 0.85 0.36 0.12 0.01 0.31
+0032 196.63 315.85 399.92 351.23 393.76 0.91 0.81 0.70 0.71 0.75
+0039 404.43 688.67 612.98 2123.33 669.68 0.85 0.56 0.63 −57.42 0.63
+0049 30.69 47.60 54.11 47.04 54.84 0.93 0.80 0.78 0.78 0.77
+0050 56.73 73.53 95.57 76.66 77.44 0.70 0.57 0.36 0.49 0.57
+0051 213.18 255.11 254.24 321.13 278.27 0.88 0.81 0.79 0.70 0.83
+0056 43.43 42.21 53.17 47.74 50.22 0.75 0.78 0.66 0.72 0.72
+0057 67.72 77.23 82.36 82.13 80.61 0.65 0.56 0.53 0.46 0.59
+0060 12.23 15.53 16.48 13.22 14.94 0.80 0.69 0.62 0.80 0.75
+0233 8.75 17.50 20.39 12.03 20.73 0.98 0.97 0.96 0.98 0.96
+0255 12.88 22.96 24.75 37.42 24.71 0.93 0.80 0.81 0.41 0.73
+0274 83.30 134.01 138.78 131.68 148.56 0.80 0.61 0.57 0.55 0.56
+0275 74.51 150.07 141.46 110.44 150.04 0.84 0.49 0.61 0.67 0.54
+0276 68.68 117.37 119.75 109.66 123.98 0.83 0.65 0.63 0.64 0.64
+AVG. 101.49 162.24 170.14 273.29 175.12 0.84 0.68 0.63 −3.53 0.67
+W/T/L 1/0/13 0/0/14 0/0/14 0/0/14 1/0/13 0/0/14 0/2/12 0/0/14
+Analytical Chemistry pubs.acs.org/ac Article
+https://doi.org/10.1021/acs.analchem.5c01703
+Anal. Chem. 2025, 97, 16788−16795
+16793
+
+
+===== PAGE 7 =====
+
+compounds for pretraining plays a crucial role in RT
+prediction. In general, the more compounds are collected,
+the better the prediction performance is. Notably, even just
+combining four data sets of 1309 compounds for pretraining,
+MDL-TL-4 outperformed all baseline methods in most cases.
+Ablation Study. An ablation study was performed to
+evaluate the necessity of concatenating molecular fingerprints
+and descriptors in MDL-TL. According to the results in Tables
+S25−S28, combining these two items yields better perform-
+ance than using either alone on the HILIC data sets. Although
+the performance on the RPLC data sets is similar to that of
+using molecular descriptors alone, the combined representa-
+tion still achieves the highest average performance.
+Model Interpretation Based on SHAP Values. RT is
+determined not only by compound structure but also by CPs.
+In this study, both molecular representation and CP
+information are incorporated into the RT prediction.
+Investigating which features significantly influence the RT
+prediction is essential for demonstrating the rationality and
+reliability of the proposed model. We adopted SHAP (SHapley
+Additive exPlanations)
+36
+to evaluate the feature importance in
+the model (see detailed information in Supporting Informa-
+tion-1).
+Figure S5 shows the normalized SHAP values of the top 20
+important features (feature descriptions are provided in Table
+S29 ). It can be seen that some CPs are important factors
+influencing the RT in RPLC and/or HILIC, emphasizing the
+importance of chromatographic conditions in predicting RT,
+and highlighting the significance of integrating chromato-
+graphic conditions into retention time prediction. Meanwhile,
+molecular descriptors also have different influences.
+Application of the Developed Method in Metabolite
+Identification. To demonstrate the exemplary application of
+MDL-TL, we conducted identification experiments using data
+from the OSI database.
+37
+MSFinder
+38
+was used to generate
+candidate lists from HMDB for the compounds. MDL-TL was
+applied to predict the RTs of the candidate compounds.
+Results are provided in Supporting Information 1. MDL-TL
+demonstrates its utility in practical applications by effectively
+reducing false positives and enhancing the compound
+identification accuracy.
+■
+CONCLUSIONS
+Compound identification remains a major bottleneck in
+metabolomics research. RT can provide orthogonal informa-
+tion to mass spectra and improve identification accuracy.
+Developing methods capable of reliably predicting RTs is of
+considerable importance.
+This study proposes a novel method, MDL-TL, for
+constructing high-performance RT prediction models. MDL-
+TL employs AEs and Word2Vec to vectorize CPs and
+combines multiple data sets for joint pretraining. The CP
+vectorization enables the model to distinguish data from
+different chromatographic data sets and facilitates the
+incorporation of chromatographic information into the RT
+prediction model. Extensive experiments on public data sets
+demonstrate the superiority of the proposed method.
+The main novelties lie in (1) MDL-TL combines multiple
+data sets to jointly pretrain, effectively addressing data sparsity
+in RT prediction across various chromatographic systems and
+providing a feasible and efficient solution for RT prediction.
+(2) MDL-TL vectorizes the CPs and integrates them into the
+RT prediction model, enhancing its predictive performance.
+For a given chromatography experiment, multiple data sets
+with similar chromatographic conditions can be collected to
+jointly pretrain and acquire transferable knowledge. This
+knowledge can then be fine-tuned for the target system to
+perform the RT prediction. Alternatively, a pretrained base
+model can be directly fine-tuned, making the proposed
+approach both efficient and practical in real-world applications.
+In pretraining, different chromatographic systems are distin-
+guished by their CP settings. Incorporating CPs into the RT
+prediction model not only improves predictive performance
+but also facilitates the investigation of chromatographic
+retention mechanisms.
+■
+ASSOCIATED CONTENT
+*
+sı
+Supporting Information
+The Supporting Information is available free of charge at
+https://pubs.acs.org/doi/10.1021/acs.analchem.5c01703.
+Molecular representation process; CPEncoder; MRFM;
+experiment design and setting; pretraining; fine-tuning;
+parameter settings; performance on RPLC data sets;
+performance on the external RPLC data sets; perform-
+ance on 14 mixed data sets; impact of data set quantity;
+ablation study; SHAP values; application in metabolite
+identification; training loss analysis; similarity of
+chromatographic parameters across 14 RPLC data sets;
+performance examination figures; tables of data set
+information; performance examination tables (PDF)
+The examples of gradient program; CP information;
+SHAP feature descriptions; metabolite identification
+result (XLSX)
+■
+AUTHOR INFORMATION
+Corresponding Author
+Xiaohui Lin − School of Computer Science & Technology,
+Dalian University of Technology, Dalian 116024, China;
+orcid.org/0000-0002-7358-6706; Email: datas@
+dlut.edu.cn
+Authors
+Yansong Li − School of Computer Science & Technology,
+Dalian University of Technology, Dalian 116024, China
+Kunjie Dong − School of Computer Science & Technology,
+Dalian University of Technology, Dalian 116024, China
+Di Yu − State Key Laboratory of Medical Proteomics, Dalian
+Institute of Chemical Physics, Chinese Academy of Sciences,
+Dalian 116023, China; Liaoning Province Key Laboratory of
+Metabolomics, Dalian 116023, P.R. China;
+ orcid.org/
+0000-0003-0801-1225
+Dongdong Huang − State Key Laboratory of Medical
+Proteomics, Dalian Institute of Chemical Physics, Chinese
+Academy of Sciences, Dalian 116023, China; University of
+Chinese Academy of Sciences, Beijing 100049, China
+Xinyu Liu − State Key Laboratory of Medical Proteomics,
+Dalian Institute of Chemical Physics, Chinese Academy of
+Sciences, Dalian 116023, China; Liaoning Province Key
+Laboratory of Metabolomics, Dalian 116023, P.R. China;
+orcid.org/0000-0002-0564-7167
+Guowang Xu − State Key Laboratory of Medical Proteomics,
+Dalian Institute of Chemical Physics, Chinese Academy of
+Sciences, Dalian 116023, China; University of Chinese
+Academy of Sciences, Beijing 100049, China; Liaoning
+Analytical Chemistry pubs.acs.org/ac Article
+https://doi.org/10.1021/acs.analchem.5c01703
+Anal. Chem. 2025, 97, 16788−16795
+16794
+
+
+===== PAGE 8 =====
+
+Province Key Laboratory of Metabolomics, Dalian 116023,
+P.R. China;
+ orcid.org/0000-0003-4298-3554
+Complete contact information is available at:
+https://pubs.acs.org/10.1021/acs.analchem.5c01703
+Notes
+The authors declare no competing financial interest.
+■
+ACKNOWLEDGMENTS
+This work was supported by the National Key R&D Program
+of China (2022YFC3401203) and the AI S&T Program
+(Grant No. DNL-YL A202202) from Yulin Branch, Dalian
+National Laboratory for Clean Energy, CAS, China.
+■
+REFERENCES
+(1) Johnson, C. H.; Ivanisevic, J.; Siuzdak, G. Nat. Rev. Mol. Cell Biol.
+2016, 17, 451−459.
+(2) Tian, Z.; Zhao, H.; Peter, K. T.; Gonzalez, M.; Wetzel, J.; Wu,
+C.; Hu, X.; Prat, J.; Mudrock, E.; Hettinger, R.; Cortina, A. E.; Biswas,
+R. G.; Kock, F. V. C.; Soong, R.; Jenne, A.; Du, B.; Hou, F.; He, H.;
+Lundeen, R.; Gilbreath, A.; Sutton, R.; Scholz, N. L.; Davis, J. W.;
+Dodd, M. C.; Simpson, A.; McIntyre, J. K.; Kolodziej, E. P. Science
+2021, 371, 185−189.
+(3) Cao, Y.; Oh, J.; Xue, M.; Huh, W. J.; Wang, J.; Gonzalez-
+Hernandez, J. A.; Rice, T. A.; Martin, A. L.; Song, D.; Crawford, J. M.;
+et al. Science 2022, 378, No. eabm3233.
+(4) Bai, Y.; Yang, C.; Halitschke, R.; Paetz, C.; Kessler, D.; Burkard,
+K.; Gaquerel, E.; Baldwin, I. T.; Li, D. Science 2022, 375, abm2948.
+(5) Masia, A.; Suarez-Varela, M. M.; Llopis-Gonzalez, A.; Pico, Y.
+Anal. Chim. Acta 2016, 936, 40−61.
+(6) Li, V. L.; He, Y.; Contrepois, K.; Liu, H.; Kim, J. T.;
+Wiggenhorn, A. L.; Tanzo, J. T.; Tung, A. S.; Lyu, X.; Zushin, P. H.;
+Jansen, R. S.; Michael, B.; Loh, K. Y.; Yang, A. C.; Carl, C. S.;
+Voldstedlund, C. T.; Wei, W.; Terrell, S. M.; Moeller, B. C.; Arthur, R.
+M.; Wallis, G. A.; van de Wetering, K.; Stahl, A.; Kiens, B.; Richter, E.
+A.; Banik, S. M.; Snyder, M. P.; Xu, Y.; Long, J. Z. Nature 2022, 606,
+785−790.
+(7) Deng, P.; Li, X.; Petriello, M. C.; Wang, C.; Morris, A. J.;
+Hennig, B. Rev. Environ. Health 2019, 34, 251−259.
+(8) Gonzalez-Pena, D.; Brennan, L. Annu. Rev. Food Sci. Technol.
+2019, 10, 479−519.
+(9) Hollender, J.; Schymanski, E. L.; Singer, H. P.; Ferguson, P. L.
+Environ. Sci. Technol. 2017, 51, 11505−11512.
+(10) Aydogan, C. Anal. Bioanal. Chem. 2020, 412, 1973−1991.
+(11) Lucci, P.; Saurina, J.; Nunez, O. Trac-Trend Anal. Chem. 2017,
+88, 1−24.
+(12) Abiead, Y. E.; Rutz, A.; Zuffa, S.; Amer, B.; Xing, S.; Brungs, C.;
+Schmid, R.; Correia, M. S. P.; Caraballo-Rodriguez, A. M.; Zarrinpar,
+A.; et al. Nat. Metab. 2025, 7, 435−437.
+(13) Zhou, B.; Wang, J.; Ressom, H. W.; Fernandez-Fuentes, N.
+PLoS One 2012, 7, No. e40096.
+(14) Witting, M.; Boecker, S. J. Sep. Sci. 2020, 43, 1746−1754.
+(15) Haddad, P. R.; Taraji, M.; Szucs, R. Anal. Chem. 2021, 93,
+228−256.
+(16) Heberger, K. J. Chromatogr. A 2007, 1158, 273−305.
+(17) Golmohammadi, H.; Dashtbozorgi, Z.; Heyden, Y. V.
+Chromatographia 2015, 78, 7−19.
+(18) Aicheler, F.; Li, J.; Hoene, M.; Lehmann, R.; Xu, G.;
+Kohlbacher, O. Anal. Chem. 2015, 87, 7698−7704.
+(19) Randazzo, G. M.; Bileck, A.; Danani, A.; Vogt, B.; Groessl, M. J.
+Chromatogr. A 2020, 1612, 460661.
+(20) Creek, D. J.; Jankevics, A.; Breitling, R.; Watson, D. G.; Barrett,
+M. P.; Burgess, K. E. V. Anal. Chem. 2011, 83, 8703−8710.
+(21) Bonini, P.; Kind, T.; Tsugawa, H.; Barupal, D. K.; Fiehn, O.
+Anal. Chem. 2020, 92, 7515−7522.
+(22) Dong, J.; Cao, D.-S.; Miao, H.-Y.; Liu, S.; Deng, B.-C.; Yun, Y.-
+H.; Wang, N.-N.; Lu, A.-P.; Zeng, W.-B.; Chen, A. F. J. Cheminf. 2015,
+7, 60.
+(23) D’Archivio, A. A.; Maggi, M. A.; Ruggieri, F. Anal. Bioanal.
+Chem. 2015, 407, 1181−1190.
+(24) Bouwmeester, R.; Martens, L.; Degroeve, S. Anal. Chem. 2019,
+91, 3694−3703.
+(25) Domingo-Almenara, X.; Guijas, C.; Billings, E.; Montenegro-
+Burke, J. R.; Uritboonthai, W.; Aisporna, A. E.; Chen, E.; Benton, H.
+P.; Siuzdak, G. Nat. Commun. 2019, 10, 5811.
+(26) Ju, R.; Liu, X.; Zheng, F.; Lu, X.; Xu, G.; Lin, X. Anal. Chem.
+2021, 93, 15651−15658.
+(27) Yang, Q.; Ji, H.; Lu, H.; Zhang, Z. Anal. Chem. 2021, 93, 2200−
+2206.
+(28) Fedorova, E. S.; Matyushin, D. D.; Plyushchenko, I.;
+Stavrianidi, A. N.; Buryak, A. K. J. Chromatogr. A 2022, 1664, 462792.
+(29) Wang, X.; Zheng, F.; Sheng, M.; Xu, G.; Lin, X. J. Chromatogr.
+B 2023, 1217, 123624.
+(30) Souihi, A.; Mohai, M. P.; Palm, E.; Malm, L.; Kruve, A. J.
+Chromatogr. A 2022, 1666, 462867.
+(31) Kretschmer, F.; Harrieder, E.; Hoffmann, M. A.; Böcker, S.;
+Witting, M. Nat. Methods 2024, 21, 153−155.
+(32) Durant, J. L.; Leland, B. A.; Henry, D. R.; Nourse, J. G. J. Chem.
+Inf. Comput. Sci. 2002, 42, 1273−1280.
+(33) Moriwaki, H.; Tian, Y.-S.; Kawashita, N.; Takagi, T. J. Cheminf.
+2018, 10, 4.
+(34) Kensert, A.; Bouwmeester, R.; Efthymiadis, K.; Van Broeck, P.;
+Desmet, G.; Cabooter, D. Anal. Chem. 2021, 93, 15633−15641.
+(35) Kwon, Y.; Kwon, H.; Han, J.; Kang, M.; Kim, J.; Shin, D.; Choi,
+Y.; Kang, S. Anal. Chem. 2023, 95, 17273−17283.
+(36) Lundberg, S. M.; Lee, S. I. A Unified Approach to Interpreting
+Model Predictions. In Advances in Neural Information Processing
+Systems 30, Proceedings of the 31st Conference on Neural Information
+Processing Systems; Neural Information Processing Systems: Long
+Beach, CA, USA, 2017; pp 4765−4774.
+(37) Zhao, X.; Zeng, Z.; Chen, A.; Lu, X.; Zhao, C.; Hu, C.; Zhou,
+L.; Liu, X.; Wang, X.; Hou, X.; Ye, Y.; Xu, G. Anal. Chem. 2018, 90,
+7635−7643.
+(38) Tsugawa, H.; Kind, T.; Nakabayashi, R.; Yukihira, D.; Tanaka,
+W.; Cajka, T.; Saito, K.; Fiehn, O.; Arita, M. Anal. Chem. 2016, 88,
+7946−7958.
+Analytical Chemistry pubs.acs.org/ac Article
+https://doi.org/10.1021/acs.analchem.5c01703
+Anal. Chem. 2025, 97, 16788−16795
+16795

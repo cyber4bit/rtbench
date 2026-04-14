@@ -1,0 +1,130 @@
+_base:
+- _bases/_base_rplc_14x14.yaml
+- _bases/_base_transfer.yaml
+- _bases/_base_models_tree.yaml
+- _bases/_base_cpvec.yaml
+datasets:
+  external:
+  - 0028
+split:
+  strategy: stratified
+models:
+  ONLY_HYPER_TL: false
+  ENABLE_HYPER_TL: false
+  ENABLE_FAIL_TUNING: true
+  ENABLE_TRANSFER_TRANSFORM_CANDIDATES: false
+  FUSION_TOP_K: 3
+  FUSION_RANK: mae_then_r2
+  CALIBRATE: true
+  ENABLE_MLP: false
+  ENABLE_MDL_SUBSET_CANDIDATES: true
+  ENABLE_LOCAL_TRANSFORM_CANDIDATES: true
+  LOCAL_TARGET_TRANSFORMS:
+  - log1p
+  - gradient_norm
+  CLIP_MULT: 2.0
+  XGB_A:
+    n_estimators: 2200
+  XGB_B:
+    n_estimators: 1600
+  LGBM_A:
+    n_estimators: 3200
+  LGBM_B:
+    n_estimators: 2000
+  LOCAL_XGB:
+    n_estimators: 1400
+    max_depth: 6
+    learning_rate: 0.03
+    subsample: 0.9
+    colsample_bytree: 0.8
+    objective: reg:absoluteerror
+    reg_lambda: 2.0
+  LOCAL_LGBM:
+    n_estimators: 2000
+    num_leaves: 63
+    learning_rate: 0.03
+    objective: mae
+    feature_fraction: 0.9
+    bagging_fraction: 0.9
+    bagging_freq: 1
+  EARLY_STOPPING_ROUNDS: 50
+  SINGLE_TASK_AUTO_POLICY:
+    enabled: true
+    tiny_n_max: 80
+    small_n_max: 140
+    medium_n_max: 400
+    high_outlier_rate: 0.10
+    near_dead_time_ratio_max: 2.0
+    small_duplicate_mol_key_rate_min: 0.20
+    duplicate_mol_key_rate_min: 0.12
+    tiny_near_dead_time:
+      CALIBRATE: false
+      FUSION_TOP_K: 3
+      ENABLE_TRANSFER_TRANSFORM_CANDIDATES: true
+      TRANSFER_TARGET_TRANSFORMS:
+      - log1p
+      ENABLE_LOCAL_TRANSFORM_CANDIDATES: false
+      CANDIDATE_NAME_ALLOWLIST:
+      - "^XTFM_LOG1P_(LGBM_B|XGB_B|RIDGE_TL|RIDGE_LOCAL)$"
+      - "^XTFM_LOG1P_MDLFEAT_(LGBM_B|XGB_B)$"
+      - "^RIDGE_LOCAL$"
+    small_duplicate_rich:
+      CALIBRATE: false
+      FUSION_TOP_K: 1
+      ENABLE_MDL_SUBSET_CANDIDATES: false
+      ENABLE_LOCAL_TRANSFORM_CANDIDATES: false
+      CANDIDATE_NAME_ALLOWLIST:
+      - "^LOCAL_XGB$"
+      LOCAL_XGB:
+        n_estimators: 900
+        max_depth: 4
+        learning_rate: 0.03
+        subsample: 0.8
+        colsample_bytree: 0.7
+        objective: reg:absoluteerror
+        reg_lambda: 5.0
+    small_outlier:
+      CALIBRATE: false
+      FUSION_TOP_K: 1
+      ENABLE_MDL_SUBSET_CANDIDATES: false
+      ENABLE_LOCAL_TRANSFORM_CANDIDATES: false
+      CANDIDATE_NAME_ALLOWLIST:
+      - "^LOCAL_LGBM$"
+      LOCAL_LGBM:
+        n_estimators: 800
+        num_leaves: 15
+        learning_rate: 0.03
+        objective: mae
+        feature_fraction: 0.6
+        bagging_fraction: 0.6
+        bagging_freq: 1
+        min_child_samples: 5
+        reg_lambda: 3.0
+    medium_duplicate_rich:
+      CALIBRATE: false
+      FUSION_TOP_K: 1
+      ENABLE_MDL_SUBSET_CANDIDATES: false
+      ENABLE_LOCAL_TRANSFORM_CANDIDATES: false
+      CANDIDATE_NAME_ALLOWLIST:
+      - "^LOCAL_XGB$"
+      LOCAL_XGB:
+        n_estimators: 900
+        max_depth: 4
+        learning_rate: 0.03
+        subsample: 0.8
+        colsample_bytree: 0.7
+        objective: reg:absoluteerror
+        reg_lambda: 5.0
+transfer_weights:
+  source: 0.1
+  similarity_power: 2.0
+  min_scale: 0.25
+  max_scale: 2.0
+  source_weight_mode: per_sample
+  top_k_sources: 8
+  target_transform: none
+seeds:
+  default: 0:4
+outputs:
+  root: outputs_supp_eval_single_task_v19
+  resume: false

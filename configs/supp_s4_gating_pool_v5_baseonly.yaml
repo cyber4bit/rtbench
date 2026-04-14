@@ -1,0 +1,29 @@
+# Policy-only supplementary gating config.
+# No `_base`: this file is consumed directly by `rtbench.experimental.supp_gating`, not the benchmark config loader.
+runs:
+  v1_seed0: "outputs_supp_eval_s4_v1/S4/comparison.csv"
+  v2_seeds0_9: "outputs_supp_eval_s4_v2_seeds0_9/S4/comparison.csv"
+  v14_full_seed0: "outputs_supp_eval_s4_v14_full/S4/comparison.csv"
+  v9_full_seed0: "outputs_supp_eval_s4_v9_full/S4/comparison.csv"
+  hyper_n10_full_seed0: "outputs_supp_eval_s4_hyper_n10_full/S4/comparison.csv"
+  subset_hn: "outputs_supp_eval_s4_combo_v2_hn/S4/comparison.csv"
+  subset_v14: "outputs_supp_eval_s4_combo_v2_v14/S4/comparison.csv"
+  subset_hn_hard: "outputs_supp_eval_s4_hard_hn10_seeds0_9/S4/comparison.csv"
+  subset_0261_tune: "outputs_tmp_s4_0261_v1_src005_maer2_top5_calibfalse/S4/comparison.csv"
+  subset_0052_hyper_n10: "outputs_supp_eval_target0052_hyper_n10/S4/comparison.csv"
+
+policy:
+  "0019": "v14_full_seed0"
+  "0052": "subset_0052_hyper_n10"
+  "0179": "v14_full_seed0"
+  "0180": "v14_full_seed0"
+  "0234": "subset_hn"
+  "0235": "subset_hn"
+  "0260": "v1_seed0"
+  "0261": "subset_0261_tune"
+  "0264": "subset_hn_hard"
+  "0317": "subset_hn"
+  "0319": "v14_full_seed0"
+  "0321": "v1_seed0"
+  "0323": "v1_seed0"
+  "0331": "subset_hn"

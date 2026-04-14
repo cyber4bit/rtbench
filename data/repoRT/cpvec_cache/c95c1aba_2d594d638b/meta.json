@@ -1,0 +1,9 @@
+{
+  "ae1_latent": 16,
+  "ae2_latent": 32,
+  "cache_dir": "data\\repoRT\\cpvec_cache\\c95c1aba_2d594d638b",
+  "col_dim": 16,
+  "col_vocab_size": 84,
+  "commit": "c95c1aba24e5472fb2d8d3f0fbd5efe202b3cd60",
+  "eluent_dim": 104
+}

@@ -1,0 +1,126 @@
+_base:
+- _bases/_base_rplc_14x14.yaml
+- _bases/_base_transfer.yaml
+- _bases/_base_models_tree.yaml
+- _bases/_base_cpvec.yaml
+datasets:
+  external:
+  - 0028
+  - '0032'
+  - 0039
+  - 0049
+  - '0050'
+  - '0051'
+  - '0056'
+  - '0057'
+  - '0060'
+  - '0233'
+  - '0255'
+  - '0274'
+  - '0275'
+  - '0276'
+models:
+  ONLY_HYPER_TL: false
+  ENABLE_HYPER_TL: true
+  ENABLE_FAIL_TUNING: true
+  failed_override:
+  - 0039
+  - '0051'
+  - '0233'
+  - '0050'
+  - '0275'
+  - '0276'
+  - '0274'
+  FUSION_TOP_K: 1
+  FUSION_RANK: mae_then_r2
+  CALIBRATE: false
+  ENABLE_MLP: true
+  ENABLE_MDL_SUBSET_CANDIDATES: true
+  ENABLE_LOCAL_TRANSFORM_CANDIDATES: true
+  LOCAL_TARGET_TRANSFORMS:
+  - log1p
+  - gradient_norm
+  ENABLE_ANCHOR_TL: false
+  CLIP_MULT: 2.0
+  HYPER_TL:
+    balance_pretrain_by_dataset: true
+    n_models: 3
+    embed_dim: 256
+    mol_hidden: 1024
+    cp_hidden: 256
+    dropout: 0.05
+    epochs: 140
+    batch_size: 256
+    lr: 0.001
+    weight_decay: 0.0001
+    val_frac: 0.1
+    patience: 14
+    ridge_lambdas:
+    - 0.0
+    - 1e-5
+    - 1e-4
+    - 0.001
+    - 0.01
+    - 0.1
+    - 1.0
+    - 10.0
+    - 100.0
+    - 1000.0
+    ridge_lambda_b: 0.01
+  MLP_TL:
+    style: mdl
+    dropout: 0.0
+    lr_pretrain: 0.001
+    epochs_pretrain: 120
+    batch_size: 32
+    lr_finetune: 0.0005
+    epochs_finetune: 300
+    patience: 40
+    search_finetune: true
+    finetune_batch_sizes:
+    - 16
+    - 32
+    finetune_lrs:
+    - 0.0001
+    - 0.0005
+    - 0.001
+    finetune_epochs_grid:
+    - 80
+    - 120
+    - 180
+    - 260
+  LOCAL_XGB:
+    n_estimators: 1800
+    max_depth: 6
+    learning_rate: 0.03
+    subsample: 0.9
+    colsample_bytree: 0.8
+    objective: reg:absoluteerror
+    reg_lambda: 2.0
+  LOCAL_LGBM:
+    n_estimators: 2500
+    num_leaves: 63
+    learning_rate: 0.03
+    objective: mae
+    feature_fraction: 0.9
+    bagging_fraction: 0.9
+    bagging_freq: 1
+  EARLY_STOPPING_ROUNDS: 60
+transfer_weights:
+  similarity_power: 2.0
+  min_scale: 0.25
+  max_scale: 2.0
+  source_weight_mode: per_sample
+  top_k_sources: 8
+  overlap_adaptive_source: true
+  overlap_ref: 0.45
+  overlap_power: 1.0
+  overlap_min_scale: 0.05
+  overlap_max_scale: 2.0
+  overlap_disable_threshold: 0.08
+  target_transform: none
+seeds:
+  default: 0:29
+outputs:
+  root: outputs_rplc_14x14_cpvec_mdlfeat_mlp_v1
+  resume: false

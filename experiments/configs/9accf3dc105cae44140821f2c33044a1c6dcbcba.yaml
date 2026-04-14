@@ -1,0 +1,93 @@
+data:
+  baseline_csv: data/baseline/paper_table2_3_external_rplc.csv
+  commit: c95c1aba24e5472fb2d8d3f0fbd5efe202b3cd60
+  gradient_points: 20
+  local_root: data/repoRT
+  repo_url: https://github.com/michaelwitting/RepoRT
+datasets:
+  expected_pretrain_count: 4157
+  external:
+  - 0028
+  - '0032'
+  - 0039
+  - 0049
+  - '0050'
+  - '0051'
+  - '0056'
+  - '0057'
+  - '0060'
+  - '0233'
+  - '0255'
+  - '0274'
+  - '0275'
+  - '0276'
+  pretrain:
+  - 0019
+  - '0052'
+  - 0179
+  - 0180
+  - '0234'
+  - '0235'
+  - '0260'
+  - '0261'
+  - '0264'
+  - '0317'
+  - 0319
+  - '0321'
+  - '0323'
+  - '0331'
+metrics:
+  paper_avg_mae: 101.49
+  paper_avg_r2: 0.84
+  required_win_both: 8
+models:
+  CALIBRATE: false
+  CLIP_MULT: 1.5
+  ENABLE_FAIL_TUNING: false
+  ENABLE_HYPER_TL: true
+  ENABLE_MLP: false
+  FUSION_TOP_K: 1
+  HYPER_TL:
+    balance_pretrain_by_dataset: true
+    batch_size: 256
+    cp_hidden: 512
+    dropout: 0.05
+    embed_dim: 256
+    epochs: 140
+    lr: 0.001
+    mol_hidden: 1024
+    n_models: 5
+    patience: 14
+    ridge_lambda_b: 0.01
+    ridge_lambdas:
+    - 0.0
+    - 1e-5
+    - 1e-4
+    - 0.001
+    - 0.01
+    - 0.1
+    - 1.0
+    - 10.0
+    - 100.0
+    - 1000.0
+    val_frac: 0.1
+    weight_decay: 0.0001
+  ONLY_HYPER_TL: true
+outputs:
+  resume: false
+  root: outputs_rplc_14x14_hyper_best_log1p_v1
+seeds:
+  default: 0:29
+split:
+  test: 0.1
+  train: 0.81
+  val: 0.09
+stats:
+  correction: bh_fdr
+  fdr_q: 0.05
+  test: wilcoxon_signed_rank_one_sided
+transfer_weights:
+  adaptive_source: false
+  source: 0.2
+  target: 1.0
+  target_transform: log1p

@@ -1,0 +1,1050 @@
+{
+  "benchmark_config_count": 85,
+  "policy_config_count": 7,
+  "rewritten_config_count": 84,
+  "archived_config_count": 1,
+  "base_usage": {
+    "_base_rplc_14x14.yaml": 84,
+    "_base_transfer.yaml": 84,
+    "_base_models_tree.yaml": 48,
+    "_base_cpvec.yaml": 46
+  },
+  "archived_configs": [
+    {
+      "archived_config_path": "configs/tmp_search0276_n10_lam0_ad0.yaml",
+      "archived_file_sha1": "f00e5abbdc5ad735ce945722e18e546527713ee1",
+      "canonical_config_path": "configs/rplc_14x14_cpvec_hyper_mdlmol_0276_n10.yaml",
+      "canonical_normalized_sha1": "719d096d498a543a3e1aedd5eaacdc1597231a3f",
+      "note": "Archived exact duplicate of configs/rplc_14x14_cpvec_hyper_mdlmol_0276_n10.yaml"
+    }
+  ],
+  "skipped_configs": [
+    "configs/supp_s4_combo_policy_v1.yaml",
+    "configs/supp_s4_combo_policy_v2_seeds0_9.yaml",
+    "configs/supp_s4_combo_policy_v3_seeds0_9.yaml",
+    "configs/supp_s4_combo_policy_v4_candidates.yaml",
+    "configs/supp_s4_gating_pool_v5_baseonly.yaml",
+    "configs/supp_s4_gating_pool_v6_strict_seeds0_9.yaml",
+    "configs/supp_s4_gating_pool_v7_strict_plus_v9hard3.yaml"
+  ],
+  "configs": [
+    {
+      "config_path": "configs/micro_0028_0039_hyper.yaml",
+      "base_count": 2,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml"
+      ],
+      "before_size": 1328,
+      "after_size": 749,
+      "normalized_sha1": "86eda608152aeaaa07524500a727119e7fbee314"
+    },
+    {
+      "config_path": "configs/micro_0028_0039_hyper_ens5.yaml",
+      "base_count": 2,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml"
+      ],
+      "before_size": 1349,
+      "after_size": 771,
+      "normalized_sha1": "fbf7342259440a02e48e1dc801e378fc8f13cbd6"
+    },
+    {
+      "config_path": "configs/micro_0028_0039_hyper_ens5_big.yaml",
+      "base_count": 2,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml"
+      ],
+      "before_size": 1357,
+      "after_size": 780,
+      "normalized_sha1": "8ad0103d249a4254419ed0922b21e789901d73c6"
+    },
+    {
+      "config_path": "configs/micro_0028_0039_hyper_ens5_big_gradnorm.yaml",
+      "base_count": 2,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml"
+      ],
+      "before_size": 1375,
+      "after_size": 798,
+      "normalized_sha1": "0e4ad362b5f0fe956cd4d9b5b12e343d7172001f"
+    },
+    {
+      "config_path": "configs/micro_0028_0039_hyper_ens5_big_log1p.yaml",
+      "base_count": 2,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml"
+      ],
+      "before_size": 1364,
+      "after_size": 787,
+      "normalized_sha1": "0e7a4b1e7e5410762f70bbe1cc7d62b48065347c"
+    },
+    {
+      "config_path": "configs/micro_0028_0039_hyper_v2.yaml",
+      "base_count": 2,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml"
+      ],
+      "before_size": 1328,
+      "after_size": 749,
+      "normalized_sha1": "c2b27eec77590cde1eee0c10a2340db23512b92f"
+    },
+    {
+      "config_path": "configs/micro_0028_0039_logk.yaml",
+      "base_count": 3,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_models_tree.yaml"
+      ],
+      "before_size": 2289,
+      "after_size": 1250,
+      "normalized_sha1": "22b1d685fb43200e563a301f7b17d8645e8af215"
+    },
+    {
+      "config_path": "configs/micro_0028_0039_perdataset.yaml",
+      "base_count": 3,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_models_tree.yaml"
+      ],
+      "before_size": 2323,
+      "after_size": 1162,
+      "normalized_sha1": "88200b3b8fb679167c769d4b497f7c16b3e09b4a"
+    },
+    {
+      "config_path": "configs/micro_0039_hyper_ens10_big.yaml",
+      "base_count": 2,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml"
+      ],
+      "before_size": 1342,
+      "after_size": 768,
+      "normalized_sha1": "361f922c1a4c45f2468e18d05aca24d616a1411e"
+    },
+    {
+      "config_path": "configs/micro_0233_hyper_logk.yaml",
+      "base_count": 2,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml"
+      ],
+      "before_size": 1334,
+      "after_size": 762,
+      "normalized_sha1": "336d57b7b76c07237cbe599bfa813a641d835bf3"
+    },
+    {
+      "config_path": "configs/quick6_combo_hyper_ridge_trees.yaml",
+      "base_count": 3,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_models_tree.yaml"
+      ],
+      "before_size": 3190,
+      "after_size": 2052,
+      "normalized_sha1": "c9050b8657992a601ca97b7f6036e61a64775edd"
+    },
+    {
+      "config_path": "configs/quick6_combo_hyper_ridge_trees_cpvec.yaml",
+      "base_count": 4,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_models_tree.yaml",
+        "_bases/_base_cpvec.yaml"
+      ],
+      "before_size": 3649,
+      "after_size": 2085,
+      "normalized_sha1": "630464e09659ad7a079a54ba44af850e7eeffb7d"
+    },
+    {
+      "config_path": "configs/quick6_hyper_ens5_big.yaml",
+      "base_count": 2,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml"
+      ],
+      "before_size": 1400,
+      "after_size": 819,
+      "normalized_sha1": "25aef89ada1c69ffb56ef1b8a4a67804442c6aa0"
+    },
+    {
+      "config_path": "configs/quick6_hyper_ens5_big_clip15.yaml",
+      "base_count": 2,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml"
+      ],
+      "before_size": 1414,
+      "after_size": 839,
+      "normalized_sha1": "09540ca6010edf65e622f80d44b412a1a1603b82"
+    },
+    {
+      "config_path": "configs/rplc_14x14.yaml",
+      "base_count": 3,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_models_tree.yaml"
+      ],
+      "before_size": 2830,
+      "after_size": 1423,
+      "normalized_sha1": "4f4f9543701516c865629e12c08147878fb59cdd"
+    },
+    {
+      "config_path": "configs/rplc_14x14_cpvec_hyper_best.yaml",
+      "base_count": 3,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_cpvec.yaml"
+      ],
+      "before_size": 2247,
+      "after_size": 1034,
+      "normalized_sha1": "c7d5eb23d8f8f28c7f46c791a1e5d82fbfb048c5"
+    },
+    {
+      "config_path": "configs/rplc_14x14_cpvec_hyper_best_gradnorm.yaml",
+      "base_count": 3,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_cpvec.yaml"
+      ],
+      "before_size": 2277,
+      "after_size": 1064,
+      "normalized_sha1": "27bf8ee2c26b68be8f926fa1164c352c286372be"
+    },
+    {
+      "config_path": "configs/rplc_14x14_cpvec_hyper_best_none.yaml",
+      "base_count": 3,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_cpvec.yaml"
+      ],
+      "before_size": 2043,
+      "after_size": 1051,
+      "normalized_sha1": "a0d1253b362a2d283f751bf0fabe7ca16df091f9"
+    },
+    {
+      "config_path": "configs/rplc_14x14_cpvec_hyper_best_randomsplit_v1.yaml",
+      "base_count": 3,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_cpvec.yaml"
+      ],
+      "before_size": 1912,
+      "after_size": 1091,
+      "normalized_sha1": "b26a008cc5d882dae7f0bf6a14dc2db1376fbd68"
+    },
+    {
+      "config_path": "configs/rplc_14x14_cpvec_hyper_best_v2.yaml",
+      "base_count": 3,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_cpvec.yaml"
+      ],
+      "before_size": 2247,
+      "after_size": 1034,
+      "normalized_sha1": "4f382959aeec39ac4ea4c94909fb8a36f9918d2f"
+    },
+    {
+      "config_path": "configs/rplc_14x14_cpvec_hyper_mdlmol_0276_n10.yaml",
+      "base_count": 3,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_cpvec.yaml"
+      ],
+      "before_size": 2037,
+      "after_size": 990,
+      "normalized_sha1": "719d096d498a543a3e1aedd5eaacdc1597231a3f"
+    },
+    {
+      "config_path": "configs/rplc_14x14_cpvec_hyper_mdlmol_v1.yaml",
+      "base_count": 3,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_cpvec.yaml"
+      ],
+      "before_size": 1935,
+      "after_size": 1115,
+      "normalized_sha1": "a2c1cd2eb4f94f120a7eddfae0bb775837318eab"
+    },
+    {
+      "config_path": "configs/rplc_14x14_cpvec_hyper_none_ch512.yaml",
+      "base_count": 3,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_cpvec.yaml"
+      ],
+      "before_size": 2049,
+      "after_size": 1057,
+      "normalized_sha1": "986fd8618c74d70b7aaace89ea69e488159c9e1d"
+    },
+    {
+      "config_path": "configs/rplc_14x14_cpvec_mdlfeat_mlp_v1.yaml",
+      "base_count": 4,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_models_tree.yaml",
+        "_bases/_base_cpvec.yaml"
+      ],
+      "before_size": 3807,
+      "after_size": 2413,
+      "normalized_sha1": "ef093fed4944fbe2cba29208049cbba7ae65f770"
+    },
+    {
+      "config_path": "configs/rplc_14x14_cpvec_opt_anchor_v1.yaml",
+      "base_count": 4,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_models_tree.yaml",
+        "_bases/_base_cpvec.yaml"
+      ],
+      "before_size": 4093,
+      "after_size": 2490,
+      "normalized_sha1": "9b93c35ff77fd317bc341e272861d19295115c1d"
+    },
+    {
+      "config_path": "configs/rplc_14x14_cpvec_random_hybrid_v1.yaml",
+      "base_count": 4,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_models_tree.yaml",
+        "_bases/_base_cpvec.yaml"
+      ],
+      "before_size": 3235,
+      "after_size": 1802,
+      "normalized_sha1": "628222988ddbb8384fd0027e608828804bf7a3d3"
+    },
+    {
+      "config_path": "configs/rplc_14x14_cpvec_trees.yaml",
+      "base_count": 4,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_models_tree.yaml",
+        "_bases/_base_cpvec.yaml"
+      ],
+      "before_size": 3310,
+      "after_size": 1476,
+      "normalized_sha1": "3880179251ce54fa09c420af8a132aba3c8de93a"
+    },
+    {
+      "config_path": "configs/rplc_14x14_hybrid.yaml",
+      "base_count": 3,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_models_tree.yaml"
+      ],
+      "before_size": 2340,
+      "after_size": 1094,
+      "normalized_sha1": "10c43fee0de75314e9c7b0fa377a4a69224e34f3"
+    },
+    {
+      "config_path": "configs/rplc_14x14_hybrid_fast.yaml",
+      "base_count": 3,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_models_tree.yaml"
+      ],
+      "before_size": 2436,
+      "after_size": 1443,
+      "normalized_sha1": "870b61c7a07d708dec99039c60ae9f8be198aa9d"
+    },
+    {
+      "config_path": "configs/rplc_14x14_hyper_best.yaml",
+      "base_count": 2,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml"
+      ],
+      "before_size": 1566,
+      "after_size": 1001,
+      "normalized_sha1": "16540888c42f2501926d369329561f2a0e6830ab"
+    },
+    {
+      "config_path": "configs/rplc_14x14_hyper_best_calibrated.yaml",
+      "base_count": 2,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml"
+      ],
+      "before_size": 1593,
+      "after_size": 1028,
+      "normalized_sha1": "e995ddaf7f8c6d960e308745efcc85727f1cc70f"
+    },
+    {
+      "config_path": "configs/rplc_14x14_hyper_best_gradnorm.yaml",
+      "base_count": 2,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml"
+      ],
+      "before_size": 1601,
+      "after_size": 1036,
+      "normalized_sha1": "836bf9d18aff4fca8bf2ddedbb58883cd1e93353"
+    },
+    {
+      "config_path": "configs/rplc_14x14_hyper_best_lamens.yaml",
+      "base_count": 2,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml"
+      ],
+      "before_size": 1611,
+      "after_size": 1041,
+      "normalized_sha1": "4aaf66f67082aad9a2fc7cab30cc7e98ff95d117"
+    },
+    {
+      "config_path": "configs/rplc_14x14_hyper_best_log1p.yaml",
+      "base_count": 2,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml"
+      ],
+      "before_size": 1590,
+      "after_size": 1025,
+      "normalized_sha1": "9accf3dc105cae44140821f2c33044a1c6dcbcba"
+    },
+    {
+      "config_path": "configs/rplc_14x14_hyper_best_logk.yaml",
+      "base_count": 2,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml"
+      ],
+      "before_size": 1588,
+      "after_size": 1023,
+      "normalized_sha1": "471f33f329b888c0de1e90868f518130e3e47434"
+    },
+    {
+      "config_path": "configs/rplc_14x14_hyper_best_ridgelim.yaml",
+      "base_count": 2,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml"
+      ],
+      "before_size": 1567,
+      "after_size": 978,
+      "normalized_sha1": "651353deecd61cf6d9552c089f9bc9cf45845d8a"
+    },
+    {
+      "config_path": "configs/rplc_14x14_hyper_best_valds.yaml",
+      "base_count": 2,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml"
+      ],
+      "before_size": 1614,
+      "after_size": 1048,
+      "normalized_sha1": "ba4a84a0f37182b457efbad05943d2411b446356"
+    },
+    {
+      "config_path": "configs/rplc_14x14_hyper_big.yaml",
+      "base_count": 2,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml"
+      ],
+      "before_size": 1584,
+      "after_size": 1018,
+      "normalized_sha1": "35e22e825eafc1cc4830d3788a9432982d91dc05"
+    },
+    {
+      "config_path": "configs/rplc_14x14_hyper_emb_lgbm.yaml",
+      "base_count": 2,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml"
+      ],
+      "before_size": 1832,
+      "after_size": 1275,
+      "normalized_sha1": "b7e1da92f6bbecb750df65a87971f16bc608df01"
+    },
+    {
+      "config_path": "configs/rplc_14x14_hyper_ens5_big_clip15_5seeds.yaml",
+      "base_count": 2,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml"
+      ],
+      "before_size": 1583,
+      "after_size": 1018,
+      "normalized_sha1": "c58b63203b9f6cce37113db4c7e4c6dc6212f389"
+    },
+    {
+      "config_path": "configs/rplc_14x14_quick6.yaml",
+      "base_count": 3,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_models_tree.yaml"
+      ],
+      "before_size": 2274,
+      "after_size": 1223,
+      "normalized_sha1": "8cc35b8636babd662f4889abfe5f7ae752cd03de"
+    },
+    {
+      "config_path": "configs/rplc_14x14_quick6_full.yaml",
+      "base_count": 3,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_models_tree.yaml"
+      ],
+      "before_size": 2552,
+      "after_size": 1261,
+      "normalized_sha1": "e4630c0578fd8ef748c9c3a310163f05a537f7d4"
+    },
+    {
+      "config_path": "configs/rplc_14x14_quick6_logk.yaml",
+      "base_count": 3,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_models_tree.yaml"
+      ],
+      "before_size": 2371,
+      "after_size": 1325,
+      "normalized_sha1": "e76937b7a1c01c168f53ab63c947c035409d0a4b"
+    },
+    {
+      "config_path": "configs/rplc_14x14_smoke.yaml",
+      "base_count": 3,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_models_tree.yaml"
+      ],
+      "before_size": 2483,
+      "after_size": 1349,
+      "normalized_sha1": "d0237644bf9e5c4acc13133eae073bcd60a165f4"
+    },
+    {
+      "config_path": "configs/rplc_14x14_smoke_tmp.yaml",
+      "base_count": 3,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_models_tree.yaml"
+      ],
+      "before_size": 2883,
+      "after_size": 1807,
+      "normalized_sha1": "b6024adfb775155eefe61e4316d2edca7f57323f"
+    },
+    {
+      "config_path": "configs/rplc_14x14_smoke_tmp2.yaml",
+      "base_count": 3,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_models_tree.yaml"
+      ],
+      "before_size": 2961,
+      "after_size": 1885,
+      "normalized_sha1": "c3e40f9765c74b92e2d172ca035b604ade6e1abe"
+    },
+    {
+      "config_path": "configs/rplc_14x14_smoke_tmp3.yaml",
+      "base_count": 3,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_models_tree.yaml"
+      ],
+      "before_size": 2962,
+      "after_size": 1886,
+      "normalized_sha1": "a0bd434f569acb09751c0c5773291bbdf818b242"
+    },
+    {
+      "config_path": "configs/rplc_14x14_smoke_tmp4.yaml",
+      "base_count": 3,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_models_tree.yaml"
+      ],
+      "before_size": 3001,
+      "after_size": 1925,
+      "normalized_sha1": "c0cf3c9f06821d96f9a89bc1bcc21e16c8be7dea"
+    },
+    {
+      "config_path": "configs/rplc_14x14_smoke_tmp5.yaml",
+      "base_count": 3,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_models_tree.yaml"
+      ],
+      "before_size": 3001,
+      "after_size": 1925,
+      "normalized_sha1": "79fe1b61cae6b7648daab8854b10f7461ce87818"
+    },
+    {
+      "config_path": "configs/rplc_14x14_trees_es.yaml",
+      "base_count": 3,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_models_tree.yaml"
+      ],
+      "before_size": 2880,
+      "after_size": 1600,
+      "normalized_sha1": "c0d9ffbc62441e13b5431f76946fa9b11285328f"
+    },
+    {
+      "config_path": "configs/rplc_14x14_trees_fast.yaml",
+      "base_count": 3,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_models_tree.yaml"
+      ],
+      "before_size": 2028,
+      "after_size": 960,
+      "normalized_sha1": "6fbd19698e8f65ad37d7da883553c703c8552c0e"
+    },
+    {
+      "config_path": "configs/supp_eval_single_task_v1.yaml",
+      "base_count": 4,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_models_tree.yaml",
+        "_bases/_base_cpvec.yaml"
+      ],
+      "before_size": 2788,
+      "after_size": 1325,
+      "normalized_sha1": "1c8c715f12d0c8c5bea41de21b2792ebcd711d1c"
+    },
+    {
+      "config_path": "configs/supp_eval_single_task_v10.yaml",
+      "base_count": 4,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_models_tree.yaml",
+        "_bases/_base_cpvec.yaml"
+      ],
+      "before_size": 3171,
+      "after_size": 1662,
+      "normalized_sha1": "59b3aab2d946849d0f2cde290395a66141744fe0"
+    },
+    {
+      "config_path": "configs/supp_eval_single_task_v11.yaml",
+      "base_count": 4,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_models_tree.yaml",
+        "_bases/_base_cpvec.yaml"
+      ],
+      "before_size": 3302,
+      "after_size": 1671,
+      "normalized_sha1": "4d4f48d8b499f26309aab8dd3202a69af972c5a5"
+    },
+    {
+      "config_path": "configs/supp_eval_single_task_v12.yaml",
+      "base_count": 4,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_models_tree.yaml",
+        "_bases/_base_cpvec.yaml"
+      ],
+      "before_size": 3399,
+      "after_size": 1776,
+      "normalized_sha1": "339d81bc39188c5c8f4338b1c17d369c1846f323"
+    },
+    {
+      "config_path": "configs/supp_eval_single_task_v13.yaml",
+      "base_count": 4,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_models_tree.yaml",
+        "_bases/_base_cpvec.yaml"
+      ],
+      "before_size": 3665,
+      "after_size": 2242,
+      "normalized_sha1": "bd9a9b65813fcecd3e62468434866adf3656ee65"
+    },
+    {
+      "config_path": "configs/supp_eval_single_task_v14.yaml",
+      "base_count": 4,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_models_tree.yaml",
+        "_bases/_base_cpvec.yaml"
+      ],
+      "before_size": 2913,
+      "after_size": 1322,
+      "normalized_sha1": "23edb17cae39e559e063773d50f65b0166972880"
+    },
+    {
+      "config_path": "configs/supp_eval_single_task_v2.yaml",
+      "base_count": 4,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_models_tree.yaml",
+        "_bases/_base_cpvec.yaml"
+      ],
+      "before_size": 3454,
+      "after_size": 2078,
+      "normalized_sha1": "bef2b93befefcaef002c294a707b444c18de575b"
+    },
+    {
+      "config_path": "configs/supp_eval_single_task_v3.yaml",
+      "base_count": 4,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_models_tree.yaml",
+        "_bases/_base_cpvec.yaml"
+      ],
+      "before_size": 2960,
+      "after_size": 1379,
+      "normalized_sha1": "226dc5fd41c844d688621e4adaee4df84e80e9f7"
+    },
+    {
+      "config_path": "configs/supp_eval_single_task_v4.yaml",
+      "base_count": 4,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_models_tree.yaml",
+        "_bases/_base_cpvec.yaml"
+      ],
+      "before_size": 2973,
+      "after_size": 1380,
+      "normalized_sha1": "8c73bc9f8293ed97c71d74e578cfb5bfd1753bd2"
+    },
+    {
+      "config_path": "configs/supp_eval_single_task_v5.yaml",
+      "base_count": 4,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_models_tree.yaml",
+        "_bases/_base_cpvec.yaml"
+      ],
+      "before_size": 2972,
+      "after_size": 1407,
+      "normalized_sha1": "95f196c58c6d16700970ae4784c4fc782028f25c"
+    },
+    {
+      "config_path": "configs/supp_eval_single_task_v6.yaml",
+      "base_count": 4,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_models_tree.yaml",
+        "_bases/_base_cpvec.yaml"
+      ],
+      "before_size": 2917,
+      "after_size": 1351,
+      "normalized_sha1": "aee68ba3c7a13520687df12539ff6a85385977cb"
+    },
+    {
+      "config_path": "configs/supp_eval_single_task_v7.yaml",
+      "base_count": 4,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_models_tree.yaml",
+        "_bases/_base_cpvec.yaml"
+      ],
+      "before_size": 2925,
+      "after_size": 1334,
+      "normalized_sha1": "16a6fceda35c23f5b714f984e5ccd66251fb8f8c"
+    },
+    {
+      "config_path": "configs/supp_eval_single_task_v8.yaml",
+      "base_count": 4,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_models_tree.yaml",
+        "_bases/_base_cpvec.yaml"
+      ],
+      "before_size": 2917,
+      "after_size": 1326,
+      "normalized_sha1": "f51500d24b8a8a495fa3661fe57c0ecb7a202b26"
+    },
+    {
+      "config_path": "configs/supp_eval_single_task_v9.yaml",
+      "base_count": 4,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_models_tree.yaml",
+        "_bases/_base_cpvec.yaml"
+      ],
+      "before_size": 2943,
+      "after_size": 1485,
+      "normalized_sha1": "751b5b701c6722ee60aa1da4f90e48ccb79dd019"
+    },
+    {
+      "config_path": "configs/tmp_opt_0032_hybrid_es_s60.yaml",
+      "base_count": 4,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_models_tree.yaml",
+        "_bases/_base_cpvec.yaml"
+      ],
+      "before_size": 3452,
+      "after_size": 2032,
+      "normalized_sha1": "df35c9cb9f1e00b5a3316aaadfc334fb0202ba67"
+    },
+    {
+      "config_path": "configs/tmp_opt_0050_hyper_s60.yaml",
+      "base_count": 3,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_cpvec.yaml"
+      ],
+      "before_size": 1835,
+      "after_size": 1037,
+      "normalized_sha1": "e0c40feed671621ba190e0b9ef73c777241006f5"
+    },
+    {
+      "config_path": "configs/tmp_s4_0261_local_fail.yaml",
+      "base_count": 4,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_models_tree.yaml",
+        "_bases/_base_cpvec.yaml"
+      ],
+      "before_size": 2956,
+      "after_size": 1381,
+      "normalized_sha1": "8ccdded0310f2dcb8ec9390045958ed769156a28"
+    },
+    {
+      "config_path": "configs/tmp_s4_0261_local_gradnorm.yaml",
+      "base_count": 4,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_models_tree.yaml",
+        "_bases/_base_cpvec.yaml"
+      ],
+      "before_size": 2961,
+      "after_size": 1386,
+      "normalized_sha1": "3de2b40c4966636595bb8bf30181b09c2f5c1827"
+    },
+    {
+      "config_path": "configs/tmp_s4_0261_local_none.yaml",
+      "base_count": 4,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_models_tree.yaml",
+        "_bases/_base_cpvec.yaml"
+      ],
+      "before_size": 2948,
+      "after_size": 1373,
+      "normalized_sha1": "15cc986549a77d6e2cc57821451e9d046c441f0b"
+    },
+    {
+      "config_path": "configs/tmp_s4_0261_local_random.yaml",
+      "base_count": 4,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_models_tree.yaml",
+        "_bases/_base_cpvec.yaml"
+      ],
+      "before_size": 2946,
+      "after_size": 1371,
+      "normalized_sha1": "1af898fe45b4cedd28d6b9816afd9cf12af9101a"
+    },
+    {
+      "config_path": "configs/tmp_s4_0261_local_random_gradnorm_fail.yaml",
+      "base_count": 4,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_models_tree.yaml",
+        "_bases/_base_cpvec.yaml"
+      ],
+      "before_size": 2977,
+      "after_size": 1402,
+      "normalized_sha1": "3e091a1222c208fe47c9430367f4971da79a6db2"
+    },
+    {
+      "config_path": "configs/tmp_s4_0261_v1_ad0_src01.yaml",
+      "base_count": 4,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_models_tree.yaml",
+        "_bases/_base_cpvec.yaml"
+      ],
+      "before_size": 2926,
+      "after_size": 1351,
+      "normalized_sha1": "7979bea144cd9f9e583bb661c868c0ccafa7d866"
+    },
+    {
+      "config_path": "configs/tmp_s4_0261_v1_ad1_src005.yaml",
+      "base_count": 4,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_models_tree.yaml",
+        "_bases/_base_cpvec.yaml"
+      ],
+      "before_size": 2927,
+      "after_size": 1327,
+      "normalized_sha1": "8b907c0722cb93e1c280dfc474261ad63b17ee08"
+    },
+    {
+      "config_path": "configs/tmp_s4_0261_v1_ad1_src01_log1p.yaml",
+      "base_count": 4,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_models_tree.yaml",
+        "_bases/_base_cpvec.yaml"
+      ],
+      "before_size": 2932,
+      "after_size": 1332,
+      "normalized_sha1": "5e1a916aac851c0b3ff86bb23a4dff835f1c800c"
+    },
+    {
+      "config_path": "configs/tmp_s4_0261_v1_ad1_src02.yaml",
+      "base_count": 4,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_models_tree.yaml",
+        "_bases/_base_cpvec.yaml"
+      ],
+      "before_size": 2925,
+      "after_size": 1310,
+      "normalized_sha1": "7050ae486cd29d8a95968c1cb20a3d3255f8475b"
+    },
+    {
+      "config_path": "configs/tmp_s4_0261_v1_src005_calibfalse.yaml",
+      "base_count": 4,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_models_tree.yaml",
+        "_bases/_base_cpvec.yaml"
+      ],
+      "before_size": 2935,
+      "after_size": 1335,
+      "normalized_sha1": "875d75a5243ff7d9fbc01e70f1745539dbf432a1"
+    },
+    {
+      "config_path": "configs/tmp_s4_0261_v1_src005_maer2_top5_calibfalse.yaml",
+      "base_count": 4,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_models_tree.yaml",
+        "_bases/_base_cpvec.yaml"
+      ],
+      "before_size": 3051,
+      "after_size": 1451,
+      "normalized_sha1": "a5976b0b3660c0eecd772291faa6bbf4478ea89b"
+    },
+    {
+      "config_path": "configs/tmp_search0276_n5_lam0_ad0.yaml",
+      "base_count": 3,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_cpvec.yaml"
+      ],
+      "before_size": 2035,
+      "after_size": 988,
+      "normalized_sha1": "69fd29bf756d217a8d9451659dd312c5967939fa"
+    },
+    {
+      "config_path": "configs/tmp_search0276_n5_lam0_ad1.yaml",
+      "base_count": 3,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_cpvec.yaml"
+      ],
+      "before_size": 2034,
+      "after_size": 962,
+      "normalized_sha1": "fc5099e906bda16a0779898b260558384c6186f4"
+    },
+    {
+      "config_path": "configs/tmp_search0276_n5_lam1_ad0.yaml",
+      "base_count": 3,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_cpvec.yaml"
+      ],
+      "before_size": 2034,
+      "after_size": 987,
+      "normalized_sha1": "c74cbf4bbb306b14a5ce4456dc8c371b0685a232"
+    },
+    {
+      "config_path": "configs/tmp_search0276_n8_lam0_ad0.yaml",
+      "base_count": 3,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_cpvec.yaml"
+      ],
+      "before_size": 2035,
+      "after_size": 988,
+      "normalized_sha1": "0958a5e9374d003e656dc85f5c59bfadab032ca6"
+    },
+    {
+      "config_path": "configs/tmp_search0276_n8_lam0_ad1.yaml",
+      "base_count": 3,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_cpvec.yaml"
+      ],
+      "before_size": 2034,
+      "after_size": 962,
+      "normalized_sha1": "c8ad94b7a59a92b2642b2abe5b9c7787617dd966"
+    },
+    {
+      "config_path": "configs/tmp_search0276_n8_lam1_ad0.yaml",
+      "base_count": 3,
+      "bases": [
+        "_bases/_base_rplc_14x14.yaml",
+        "_bases/_base_transfer.yaml",
+        "_bases/_base_cpvec.yaml"
+      ],
+      "before_size": 2034,
+      "after_size": 987,
+      "normalized_sha1": "4ec88e13a049302c056660d9c1a94169d502ebea"
+    }
+  ]
+}

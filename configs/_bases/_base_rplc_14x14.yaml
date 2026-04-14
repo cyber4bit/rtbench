@@ -1,0 +1,38 @@
+# Base RepoRT 14x14 benchmark scope and evaluation thresholds.
+# Override `datasets.external`, `split.*`, `metrics.*`, or `outputs.root` in experiment configs.
+data:
+  repo_url: https://github.com/michaelwitting/RepoRT
+  commit: c95c1aba24e5472fb2d8d3f0fbd5efe202b3cd60
+  local_root: data/repoRT
+  baseline_dir: data/baseline
+  baseline_csv: data/baseline/paper_table2_3_external_rplc.csv
+  gradient_points: 20
+datasets:
+  pretrain:
+  - 0019
+  - '0052'
+  - 0179
+  - 0180
+  - '0234'
+  - '0235'
+  - '0260'
+  - '0261'
+  - '0264'
+  - '0317'
+  - 0319
+  - '0321'
+  - '0323'
+  - '0331'
+  expected_pretrain_count: 4157
+split:
+  train: 0.81
+  val: 0.09
+  test: 0.1
+metrics:
+  paper_avg_mae: 101.49
+  paper_avg_r2: 0.84
+  required_win_both: 8
+stats:
+  test: wilcoxon_signed_rank_one_sided
+  correction: bh_fdr
+  fdr_q: 0.05

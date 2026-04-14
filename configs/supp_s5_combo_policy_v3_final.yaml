@@ -1,0 +1,20 @@
+# Policy-only supplementary combo config for the final S5 single-task release.
+runs:
+  v1: "outputs_supp_eval_s5_v1/S5/comparison.csv"
+  v19_targeted: "outputs_supp_eval_s5_v19_targeted/S5/comparison.csv"
+
+policy:
+  "0027": "v1"
+  "0183": "v1"
+  "0184": "v19_targeted"
+  "0185": "v19_targeted"
+  "0231": "v1"
+  "0282": "v1"
+  "0283": "v1"
+  "0372": "v1"
+  "0373": "v1"
+  "0374": "v1"
+  "0375": "v1"
+  "0376": "v1"
+  "0377": "v1"
+  "0378": "v1"

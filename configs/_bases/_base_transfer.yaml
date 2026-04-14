@@ -1,0 +1,6 @@
+# Base transfer-weighting defaults shared by tree, ridge, and hyper-transfer experiments.
+# Override `transfer_weights.*` for source weighting, adaptive similarity scaling, and target transforms.
+transfer_weights:
+  source: 0.2
+  target: 1.0
+  adaptive_source: true

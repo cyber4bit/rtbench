@@ -1,0 +1,22 @@
+# Policy-only supplementary combo config.
+# No `_base`: this file is consumed directly by `rtbench.experimental.supp_combo`, not the benchmark config loader.
+runs:
+  v1: "outputs_supp_eval_s4_v1/S4/comparison.csv"
+  hn: "outputs_supp_eval_s4_hyper_n10_full/S4/comparison.csv"
+  v14: "outputs_supp_eval_s4_v14_full/S4/comparison.csv"
+
+policy:
+  "0019": "v14"
+  "0052": "v1"
+  "0179": "v14"
+  "0180": "v14"
+  "0234": "hn"
+  "0235": "hn"
+  "0260": "hn"
+  "0261": "v1"
+  "0264": "v14"
+  "0317": "hn"
+  "0319": "v14"
+  "0321": "v1"
+  "0323": "v14"
+  "0331": "hn"
