@@ -1,0 +1,11 @@
+# Policy-only supplementary gating config for S4 final selection.
+# No `_base`: this file is consumed directly by `rtbench.experimental.supp_gating`.
+runs:
+  v1: "outputs_supp_eval_s4_v1/S4/comparison.csv"
+  v9: "outputs_supp_eval_s4_v9_full/S4/comparison.csv"
+  v14: "outputs_supp_eval_s4_v14_full/S4/comparison.csv"
+  v19: "outputs_supp_eval_s4_v19_5seeds/S4/comparison.csv"
+  hn: "outputs_supp_eval_s4_hyper_n10_full/S4/comparison.csv"
+
+data:
+  local_root: "data/repoRT"

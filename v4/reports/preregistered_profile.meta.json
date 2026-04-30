@@ -1,0 +1,11 @@
+{
+  "cp_cache_path": "D:\\fenxi-codex\\\u5206\u6790-codex\\data\\repoRT\\cpvec_cache",
+  "row_count": 84,
+  "rtbench_commit": "509cf465b960a8503d96f86f8a3ed0c171684f96",
+  "tuning_seeds": [
+    23,
+    24,
+    25
+  ],
+  "v3_outputs_root": "D:\\fenxi-codex\\\u5206\u6790-codex\\v4\\reports\\_v3_tuning"
+}

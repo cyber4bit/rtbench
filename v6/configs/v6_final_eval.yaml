@@ -1,0 +1,160 @@
+# Phase manifest for v6/scripts/run_phase.py. This is NOT a standalone rtbench config.
+phase: V6_final
+kind: phase_manifest
+description: "Locked v6 final evaluation on seeds 40..49 after validate gate pass."
+
+base_configs:
+  S4: "v4/reports/_v3_tuning/outputs_v3_s4/config.resolved.yaml"
+  S5: "v4/reports/_v3_tuning/outputs_v3_s5/config.resolved.yaml"
+
+requires:
+  - "v6/reports/_stamps/gate.ok"
+  - "v6/reports/loss_weight_rules.json"
+
+overrides:
+  seeds.default: "40:49"
+  outputs.root_template: "outputs_v6_final_{sheet}"
+  transfer_weights.per_dataset_multiplier_from: "v6/reports/loss_weight_rules.json"
+  sheet_overrides:
+    S4:
+      models.ENABLE_HYPER_PRIOR_CAL: true
+      models.FUSION_TOP_K: 3
+      models.PER_DATASET_MODEL_OVERRIDES:
+        "0180":
+          TARGET_TRANSFORM: log1p
+          CALIBRATE: false
+    S5:
+      models.ENABLE_HILIC_HYPER_TL: true
+      models.HILIC_HYPER_TL:
+        n_models: 1
+        epochs: 30
+        batch_size: 256
+        patience: 5
+        balance_pretrain_by_dataset: true
+        replace_global_bundles: false
+        include_global_bundles: true
+        enable_prior_calibration: true
+      models.ENABLE_HYPER_PRIOR_CAL: true
+      models.ENABLE_WEIGHTED_CALIBRATED_MOL_LOOKUP: true
+      models.WEIGHTED_CALIBRATED_MOL_MIN_MEDIAN_TO_T0: 2.0
+      models.ENABLE_HILIC_POOL_CANDIDATES: true
+      models.HILIC_POOL:
+        enable_lgbm: true
+        enable_xgb: false
+        early_stopping_rounds: 40
+        lgbm:
+          n_estimators: 900
+          num_leaves: 31
+          learning_rate: 0.03
+          objective: mae
+          feature_fraction: 0.85
+          bagging_fraction: 0.9
+          bagging_freq: 1
+          min_child_samples: 8
+      models.SINGLE_TASK_AUTO_POLICY.tiny_near_dead_time.EARLY_CANDIDATES_ONLY: true
+      models.SINGLE_TASK_AUTO_POLICY.tiny_near_dead_time.CANDIDATE_NAME_ALLOWLIST:
+        - "^EXACT_MOL_LOOKUP$"
+        - "^CAL_MOL_LOOKUP$"
+        - "^CAL_MOL_LOOKUP_KNN$"
+        - "^CAL_MOL_LOOKUP_KNN_MIDCLIP$"
+        - "^CAL_MOL_LOOKUP_ISOTONIC$"
+        - "^CAL_MOL_LOOKUP_ISOTONIC_MIDCLIP70$"
+        - "^CAL_MOL_LOOKUP_ISOTONIC_QFB70$"
+        - "^CAL_MOL_LOOKUP_ISOTONIC_QFB70_MIDCLIP70$"
+      models.SINGLE_TASK_AUTO_POLICY.tiny_near_dead_time.ENABLE_HILIC_POOL_CANDIDATES: false
+      models.SINGLE_TASK_AUTO_POLICY.tiny_near_dead_time.FUSION_TOP_K: 6
+      models.SINGLE_TASK_AUTO_POLICY.tiny_near_dead_time.FUSION_MAX_VAL_MAE_RATIO: 2.0
+      models.SINGLE_TASK_AUTO_POLICY.tiny_near_dead_time.ENABLE_KNN_CALIBRATED_MOL_LOOKUP: true
+      models.SINGLE_TASK_AUTO_POLICY.tiny_near_dead_time.KNN_CALIBRATED_MOL_N_NEIGHBORS: 9
+      models.SINGLE_TASK_AUTO_POLICY.tiny_near_dead_time.KNN_CALIBRATED_MOL_WEIGHTS: distance
+      models.SINGLE_TASK_AUTO_POLICY.tiny_near_dead_time.KNN_CALIBRATED_MOL_MIN_OVERLAP: 12
+      models.SINGLE_TASK_AUTO_POLICY.tiny_near_dead_time.KNN_CALIBRATED_MOL_MID_CLIP_QUANTILE: 0.6
+      models.SINGLE_TASK_AUTO_POLICY.tiny_near_dead_time.KNN_CALIBRATED_MOL_MID_CLIP_TRIGGER_T0_RATIO: 1.45
+      models.SINGLE_TASK_AUTO_POLICY.tiny_near_dead_time.ENABLE_ISOTONIC_CALIBRATED_MOL_LOOKUP: true
+      models.SINGLE_TASK_AUTO_POLICY.tiny_near_dead_time.ISOTONIC_CALIBRATED_MOL_MIN_OVERLAP: 12
+      models.SINGLE_TASK_AUTO_POLICY.tiny_near_dead_time.ISOTONIC_CALIBRATED_MOL_FALLBACK_QUANTILES:
+        - 0.7
+      models.SINGLE_TASK_AUTO_POLICY.tiny_near_dead_time.ISOTONIC_CALIBRATED_MOL_MID_CLIP_QUANTILE: 0.7
+      models.SINGLE_TASK_AUTO_POLICY.tiny_near_dead_time.ISOTONIC_CALIBRATED_MOL_MID_CLIP_TRIGGER_T0_RATIO: 1.3
+      models.SINGLE_TASK_AUTO_POLICY.tiny_near_dead_time.FUSION_OBJECTIVE: mae_r2
+      models.SINGLE_TASK_AUTO_POLICY.tiny_near_dead_time.FUSION_R2_WEIGHT: 1.0
+      models.PER_DATASET_MODEL_OVERRIDES:
+        "0231":
+          ONLY_HYPER_TL: false
+          ENABLE_LOCAL_TRANSFORM_CANDIDATES: true
+          ENABLE_MLP: false
+          DISABLE_ANCHOR_CANDIDATES: true
+          DISABLE_TRANSFER_TREE_CANDIDATES: true
+          DISABLE_RIDGE_CANDIDATES: true
+          DISABLE_MDL_TRANSFER_TREE_CANDIDATES: true
+          DISABLE_MDL_LOCAL_TREE_CANDIDATES: true
+          LOCAL_TREE_ENABLE_XGB: true
+          LOCAL_TREE_ENABLE_LGBM: false
+          FUSION_TOP_K: 6
+          FUSION_MAX_VAL_MAE_RATIO: 2.0
+        "0282":
+          CANDIDATE_NAME_ALLOWLIST:
+            - "^CAL_MOL_LOOKUP_ISOTONIC_QFB70$"
+          FUSION_TOP_K: 1
+          FUSION_OBJECTIVE: mae
+        "0283":
+          ENABLE_SOURCE_PROXY_CALIBRATED_MOL_LOOKUP: true
+          SOURCE_PROXY_CALIBRATED_MOL_SOURCE_IDS:
+            - "0282"
+          SOURCE_PROXY_CALIBRATED_MOL_RANDOM_STATE: 2
+          SOURCE_PROXY_HYBRID_MIN_PROXY_MAX_T0_RATIO: 1.2
+          CANDIDATE_NAME_ALLOWLIST:
+            - "^CAL_MOL_LOOKUP_SOURCE_PROXY_HYBRID_CAL_MOL_LOOKUP_ISOTONIC_QFB70_MIDCLIP70$"
+          FUSION_TOP_K: 1
+          FUSION_OBJECTIVE: mae
+        "0372":
+          ONLY_HYPER_TL: false
+          ENABLE_LOCAL_TRANSFORM_CANDIDATES: true
+          ENABLE_MLP: false
+          DISABLE_ANCHOR_CANDIDATES: true
+          DISABLE_TRANSFER_TREE_CANDIDATES: true
+          DISABLE_RIDGE_CANDIDATES: true
+          DISABLE_MDL_TRANSFER_TREE_CANDIDATES: true
+          DISABLE_MDL_LOCAL_TREE_CANDIDATES: true
+          LOCAL_TREE_ENABLE_XGB: true
+          LOCAL_TREE_ENABLE_LGBM: false
+          FUSION_TOP_K: 6
+          FUSION_MAX_VAL_MAE_RATIO: 2.0
+        "0373":
+          ONLY_HYPER_TL: false
+          ENABLE_LOCAL_TRANSFORM_CANDIDATES: true
+          ENABLE_MLP: false
+          DISABLE_ANCHOR_CANDIDATES: true
+          DISABLE_TRANSFER_TREE_CANDIDATES: true
+          DISABLE_RIDGE_CANDIDATES: true
+          DISABLE_MDL_TRANSFER_TREE_CANDIDATES: true
+          DISABLE_MDL_LOCAL_TREE_CANDIDATES: true
+          LOCAL_TREE_ENABLE_XGB: true
+          LOCAL_TREE_ENABLE_LGBM: false
+          FUSION_TOP_K: 6
+          FUSION_MAX_VAL_MAE_RATIO: 2.0
+        "0376":
+          ONLY_HYPER_TL: false
+          ENABLE_LOCAL_TRANSFORM_CANDIDATES: true
+          ENABLE_MLP: false
+          DISABLE_ANCHOR_CANDIDATES: true
+          DISABLE_TRANSFER_TREE_CANDIDATES: true
+          DISABLE_RIDGE_CANDIDATES: true
+          DISABLE_MDL_TRANSFER_TREE_CANDIDATES: true
+          DISABLE_MDL_LOCAL_TREE_CANDIDATES: true
+          LOCAL_TREE_ENABLE_XGB: true
+          LOCAL_TREE_ENABLE_LGBM: false
+          FUSION_TOP_K: 6
+          FUSION_MAX_VAL_MAE_RATIO: 2.0
+      models.FUSION_TOP_K: 8
+      models.CALIBRATE: false
+
+guardrails:
+  final_seed_use_allowed_only_after_gate: true
+  no_rule_mutation: true
+  no_prior_v4_seed_bands: true
+  config_diff_whitelist: "v6/configs/config_diff_whitelist.yaml"
+
+outputs:
+  generated_config_dir: "v6/reports/_generated_configs"
+  stamp: "v6/reports/_stamps/V6_final.ok"

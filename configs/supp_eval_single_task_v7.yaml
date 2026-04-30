@@ -1,0 +1,62 @@
+_base:
+- _bases/_base_rplc_14x14.yaml
+- _bases/_base_transfer.yaml
+- _bases/_base_models_tree.yaml
+- _bases/_base_cpvec.yaml
+datasets:
+  external:
+  - 0028
+split:
+  strategy: stratified
+models:
+  ONLY_HYPER_TL: false
+  ENABLE_HYPER_TL: false
+  ENABLE_FAIL_TUNING: true
+  FUSION_TOP_K: 3
+  FUSION_RANK: mae_then_r2
+  CALIBRATE: true
+  ENABLE_MLP: false
+  ENABLE_MDL_SUBSET_CANDIDATES: true
+  ENABLE_LOCAL_TRANSFORM_CANDIDATES: true
+  LOCAL_TARGET_TRANSFORMS:
+  - log1p
+  - gradient_norm
+  CLIP_MULT: 2.0
+  XGB_A:
+    n_estimators: 2200
+  XGB_B:
+    n_estimators: 1600
+  LGBM_A:
+    n_estimators: 3200
+  LGBM_B:
+    n_estimators: 2000
+  LOCAL_XGB:
+    n_estimators: 1400
+    max_depth: 6
+    learning_rate: 0.03
+    subsample: 0.9
+    colsample_bytree: 0.8
+    objective: reg:absoluteerror
+    reg_lambda: 2.0
+  LOCAL_LGBM:
+    n_estimators: 2000
+    num_leaves: 63
+    learning_rate: 0.03
+    objective: mae
+    feature_fraction: 0.9
+    bagging_fraction: 0.9
+    bagging_freq: 1
+  EARLY_STOPPING_ROUNDS: 50
+transfer_weights:
+  source: 0.1
+  similarity_power: 2.0
+  min_scale: 0.25
+  max_scale: 2.0
+  source_weight_mode: per_sample
+  top_k_sources: 8
+  target_transform: gradient_norm
+seeds:
+  default: 0:4
+outputs:
+  root: outputs_supp_eval_single_task_v7
+  resume: false

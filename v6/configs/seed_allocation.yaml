@@ -1,0 +1,26 @@
+version: v6
+seed_bands:
+  V6_validate:
+    seeds: [30, 31, 32, 33, 34, 35, 36, 37, 38, 39]
+    purpose: "fresh development validation after v4 final was observed; not a publish set"
+  V6_final:
+    seeds: [40, 41, 42, 43, 44, 45, 46, 47, 48, 49]
+    purpose: "locked final evaluation; only run after v6 validate gates pass"
+  V6_reseal_validate:
+    seeds: [50, 51, 52, 53, 54, 55, 56, 57, 58, 59]
+    purpose: "fresh development validation after V6_final became diagnostic; excludes all previously opened seed bands"
+  V6_reseal_final:
+    seeds: [60, 61, 62, 63, 64, 65, 66, 67, 68, 69]
+    purpose: "locked resealed final evaluation; only run after V6_reseal_validate gates pass"
+
+forbidden_combinations:
+  - description: "Reuse of any v3/v4 development or final seeds in v6"
+    detector: "run_phase.py guardrail no_prior_v4_seed_bands"
+  - description: "V6 final seeds used in validation"
+    detector: "run_phase.py guardrail no_v6_final_seeds"
+  - description: "V6 final started without validate gate"
+    detector: "V6_final manifest requires v6/reports/_stamps/gate.ok"
+  - description: "Rule derivation or config selection reads V6_final outputs"
+    detector: "manual audit; final outputs are publish-only"
+  - description: "Rule derivation or config selection reads V6_reseal_final outputs"
+    detector: "manual audit; resealed final outputs are publish-only"

@@ -1,0 +1,23 @@
+# Policy-only supplementary gating config.
+# No `_base`: this file is consumed directly by `rtbench.experimental.supp_gating`, not the benchmark config loader.
+runs:
+  v2_seeds0_9: "outputs_supp_eval_s4_v2_seeds0_9/S4/comparison.csv"
+  combo_v2_seeds0_9: "outputs_supp_eval_s4_combo_v2_seeds0_9/S4/comparison.csv"
+  combo_v3_seeds0_9: "outputs_supp_eval_s4_combo_v3_seeds0_9/S4/comparison.csv"
+  hard_hn10_seeds0_9: "outputs_supp_eval_s4_hard_hn10_seeds0_9/S4/comparison.csv"
+
+policy:
+  "0019": "combo_v3_seeds0_9"
+  "0052": "hard_hn10_seeds0_9"
+  "0179": "combo_v3_seeds0_9"
+  "0180": "combo_v3_seeds0_9"
+  "0234": "combo_v3_seeds0_9"
+  "0235": "combo_v3_seeds0_9"
+  "0260": "combo_v3_seeds0_9"
+  "0261": "combo_v3_seeds0_9"
+  "0264": "hard_hn10_seeds0_9"
+  "0317": "combo_v3_seeds0_9"
+  "0319": "combo_v3_seeds0_9"
+  "0321": "combo_v3_seeds0_9"
+  "0323": "combo_v3_seeds0_9"
+  "0331": "combo_v3_seeds0_9"

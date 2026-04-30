@@ -1,0 +1,282 @@
+# Phase manifest for v7/scripts/run_phase.py. This is not a standalone rtbench config.
+phase: V7_validate
+kind: phase_manifest
+description: "v7 sheet-level unified Hyper-TL validation."
+
+base_configs:
+  S4: "v6/reports/_generated_configs/V6_reseal_validate_S4.yaml"
+  S5: "v6/reports/_generated_configs/V6_reseal_validate_S5.yaml"
+
+overrides:
+  data.include_molecule_context: false
+  data.molecule_text_ngram_dim: 0
+  data.molecule_sequence_max_len: 0
+  seeds.default: "71:80"
+  outputs.root_template: "outputs_v7_validate_{sheet}"
+
+  models.ONLY_HYPER_TL: true
+  models.UNIFIED_MULTITASK: true
+  models.ENABLE_HYPER_TL: true
+  models.ENABLE_SHEET_UNIFIED_HYPER_TL: true
+  models.SHEET_UNIFIED_HYPER_TL:
+    n_models: 3
+    epochs: 80
+    batch_size: 256
+    patience: 12
+    balance_pretrain_by_dataset: true
+    replace_source_bundles: true
+    include_base_source: true
+    conditioning: cp
+    use_mdl_subset_mol: true
+    use_mol_context: false
+    use_mol_text_ngram: false
+    use_mol_sequence: false
+    mol_sequence_embed_dim: 16
+    mol_sequence_channels: 32
+    mol_sequence_weight: 1.0
+    use_film: false
+    film_scale: 0.25
+    use_conditioned_embeddings: false
+    use_task_adapters: false
+    use_cross_stitch: false
+    adapter_reduction: 4
+    cross_stitch_init: 0.02
+    ranking_loss_weight: 0.0
+    ranking_loss_temp: 0.05
+    ranking_min_delta: 0.0
+
+  models.HYPER_TL.n_models: 3
+  models.HYPER_TL.epochs: 80
+  models.HYPER_TL.patience: 12
+  models.HYPER_TL.balance_pretrain_by_dataset: true
+  models.HYPER_TL.use_mdl_subset_mol: true
+  models.HYPER_TL.use_mol_context: false
+  models.HYPER_TL.use_mol_text_ngram: false
+  models.HYPER_TL.use_mol_sequence: false
+  models.HYPER_TL.mol_sequence_embed_dim: 16
+  models.HYPER_TL.mol_sequence_channels: 32
+  models.HYPER_TL.mol_sequence_weight: 1.0
+  models.HYPER_TL.use_film: false
+  models.HYPER_TL.film_scale: 0.25
+  models.HYPER_TL.use_conditioned_embeddings: false
+  models.HYPER_TL.use_task_adapters: false
+  models.HYPER_TL.use_cross_stitch: false
+  models.HYPER_TL.adapter_reduction: 4
+  models.HYPER_TL.cross_stitch_init: 0.02
+  models.HYPER_TL.ranking_loss_weight: 0.0
+  models.HYPER_TL.ranking_loss_temp: 0.05
+  models.HYPER_TL.ranking_min_delta: 0.0
+  models.HYPER_TL.ensemble_lambdas: true
+  models.ENABLE_HYPER_PRIOR_CAL: true
+  models.HYPER_PRIOR_CAL_MODES: [linear, isotonic]
+  models.ENABLE_HYPER_EMB_LGBM: true
+  models.ENABLE_HYPER_EMB_ADAPTER: false
+  models.ENABLE_SHEET_PRIOR_CAL: false
+  models.ENABLE_SHEET_EMB_LGBM: false
+  models.ENABLE_SHEET_EMB_LGBM_SEC: false
+  models.ENABLE_SHEET_FULL_LGBM: false
+  models.ENABLE_SHEET_FULL_LGBM_SEC: false
+  models.ENABLE_SHEET_RESID_LGBM: false
+  models.ENABLE_SHEET_FULL_RESID_LGBM: false
+  models.ENABLE_SHEET_MEMORY_ATTENTION: false
+  models.ENABLE_RETENTION_ORDER_INDEX: false
+  models.ENABLE_SEMANTIC_CLASS_PRIOR: false
+  models.SEMANTIC_CLASS_PRIOR_BLEND: 0.85
+  models.SEMANTIC_CLASS_PRIOR_CP_POWER: 4.0
+  models.SEMANTIC_CLASS_PRIOR_MIN_SUPPORT: 1
+  models.SEMANTIC_CLASS_PRIOR_MIN_CAL_POINTS: 3
+  models.SEMANTIC_CLASS_PRIOR_EXCLUDE_EXACT_KEY: true
+  models.SEMANTIC_CLASS_PRIOR_AGG: mean
+  models.SEMANTIC_CLASS_PRIOR_QUANTILE: 0.8
+  models.SEMANTIC_CLASS_PRIOR_TOKEN_REGEX: ""
+  models.SEMANTIC_CLASS_PRIOR_SOURCE_SECONDS: false
+  models.SEMANTIC_CLASS_PRIOR_TARGET_QUANTILE_FLOOR: -1.0
+  models.SEMANTIC_CLASS_PRIOR_REQUIRE_TARGET_TOKEN_REGEXES: []
+  models.SEMANTIC_CLASS_PRIOR_REQUIRE_TEST_TOKEN_REGEXES: []
+  models.SEMANTIC_CLASS_TARGET_QUANTILE_RULES: []
+  models.ENABLE_TARGET_CLASS_QUANTILE_RULES: false
+  models.TARGET_CLASS_QUANTILE_RULES: []
+  models.TARGET_CLASS_QUANTILE_REQUIRE_TARGET_TOKEN_REGEXES: []
+  models.TARGET_CLASS_QUANTILE_REQUIRE_TEST_TOKEN_REGEXES: []
+  models.TARGET_CLASS_QUANTILE_BLEND: 1.0
+  models.RETENTION_ORDER_FEATURES: full
+  models.RETENTION_ORDER_USE_TARGET_TRAIN: true
+  models.RETENTION_ORDER_MAPPERS: [isotonic]
+  models.RETENTION_ORDER_SOURCE_WEIGHT: 1.0
+  models.RETENTION_ORDER_TARGET_WEIGHT: 10.0
+  models.RETENTION_ORDER_N_ESTIMATORS: 900
+  models.RETENTION_ORDER_LEARNING_RATE: 0.03
+  models.RETENTION_ORDER_NUM_LEAVES: 31
+  models.RETENTION_ORDER_OBJECTIVE: mae
+  models.RETENTION_ORDER_FEATURE_FRACTION: 0.85
+  models.RETENTION_ORDER_BAGGING_FRACTION: 0.9
+  models.RETENTION_ORDER_BAGGING_FREQ: 1
+  models.RETENTION_ORDER_MIN_CHILD_SAMPLES: 8
+  models.RETENTION_ORDER_EARLY_STOPPING_ROUNDS: 0
+  models.SHEET_MEMORY_FEATURES: full
+  models.SHEET_MEMORY_CALIBRATE: true
+  models.SHEET_MEMORY_TOP_K: 12
+  models.SHEET_MEMORY_MOL_POWER: 4.0
+  models.SHEET_MEMORY_CP_POWER: 2.0
+  models.SHEET_MEMORY_CP_WEIGHT: 1.0
+  models.SHEET_HEAD_CP_SIM_WEIGHT: false
+  models.SHEET_HEAD_CP_SIM_POWER: 1.0
+  models.SHEET_HEAD_CP_SIM_MIN_WEIGHT: 0.05
+  models.HYPER_EMB_ADAPTER:
+    hidden: 96
+    bottleneck: 24
+    dropout: 0.05
+    lr: 0.002
+    weight_decay: 0.0001
+    epochs: 260
+    patience: 28
+    batch_size: 64
+    loss: smooth_l1
+    beta: 0.5
+    refit_on_train_val: true
+    min_train_rows: 12
+
+  models.SINGLE_TASK_AUTO_POLICY.enabled: false
+  models.EXTERNAL_AUX_MAX_N: 0
+  models.ENABLE_EXACT_MOL_LOOKUP: false
+  models.ENABLE_CALIBRATED_MOL_LOOKUP: false
+  models.ENABLE_WEIGHTED_CALIBRATED_MOL_LOOKUP: false
+  models.ENABLE_KNN_CALIBRATED_MOL_LOOKUP: false
+  models.ENABLE_ISOTONIC_CALIBRATED_MOL_LOOKUP: false
+  models.ENABLE_SOURCE_PROXY_CALIBRATED_MOL_LOOKUP: false
+  models.ENABLE_LOCAL_FAST_CANDIDATES: false
+  models.ENABLE_LOCAL_TRANSFORM_CANDIDATES: false
+  models.ENABLE_HILIC_HYPER_TL: false
+  models.HILIC_HYPER_TL: {}
+  models.ENABLE_HILIC_POOL_CANDIDATES: false
+  models.PER_DATASET_MODEL_OVERRIDES: {}
+  models.CANDIDATE_NAME_ALLOWLIST: []
+  models.CANDIDATE_NAME_DENYLIST:
+    - "^EXACT_MOL_LOOKUP"
+    - "^CAL_MOL_LOOKUP"
+    - "^HILIC_POOL"
+    - "^LOCAL_"
+  models.FUSION_TOP_K: 4
+  models.FUSION_RANK: mae_then_r2
+  models.FUSION_EXCLUSIVE_PRIORITY: false
+  models.FUSION_OBJECTIVE: mae_r2
+  models.FUSION_R2_WEIGHT: 0.5
+  models.FUSION_TARGET_QUANTILE_RULES: []
+  models.FUSION_TARGET_QUANTILE_BLEND: 1.0
+  models.CLIP_MULT: 2.0
+  models.CALIBRATE: false
+
+  sheet_overrides:
+    S5:
+      transfer_weights.target_transform: gradient_norm
+      models.ENABLE_SEMANTIC_CLASS_PRIOR: false
+      models.SEMANTIC_CLASS_PRIOR_BLEND: 1.0
+      models.SEMANTIC_CLASS_PRIOR_CP_POWER: 4.0
+      models.SEMANTIC_CLASS_PRIOR_MIN_SUPPORT: 1
+      models.SEMANTIC_CLASS_PRIOR_MIN_CAL_POINTS: 999
+      models.SEMANTIC_CLASS_PRIOR_EXCLUDE_EXACT_KEY: true
+      models.SEMANTIC_CLASS_PRIOR_AGG: quantile
+      models.SEMANTIC_CLASS_PRIOR_QUANTILE: 0.9
+      models.SEMANTIC_CLASS_PRIOR_TOKEN_REGEX: "Pteridine|Pterin|Pteroic|Folic"
+      models.SEMANTIC_CLASS_PRIOR_TARGET_QUANTILE_FLOOR: 0.85
+      models.SEMANTIC_CLASS_PRIOR_REQUIRE_TARGET_TOKEN_REGEXES:
+        - "Pteridine|Pterin|Pteroic|Folic"
+        - "Acyl CoA|Acyl CoAs|Fatty acyl thioesters"
+      models.SEMANTIC_CLASS_PRIOR_REQUIRE_TEST_TOKEN_REGEXES:
+        - "Pteridine|Pterin|Pteroic|Folic|Acyl CoA|Acyl CoAs|Fatty acyl thioesters"
+      models.SEMANTIC_CLASS_TARGET_QUANTILE_RULES:
+        - "Acyl CoA|Acyl CoAs|Fatty acyl thioesters=>0.4"
+      models.ENABLE_TARGET_CLASS_QUANTILE_RULES: false
+      models.TARGET_CLASS_QUANTILE_RULES:
+        - "Phenylpyrazoles=>0.72"
+        - "Cyclohexanols=>1.0"
+        - "Yohimbine alkaloids=>0.94"
+      models.TARGET_CLASS_QUANTILE_REQUIRE_TEST_TOKEN_REGEXES:
+        - "Phenylpyrazoles|Cyclohexanols|Yohimbine alkaloids"
+      models.ENABLE_SHEET_EMB_LGBM: true
+      models.ENABLE_SHEET_FULL_LGBM_SEC: true
+      models.SHEET_HEAD_CP_SIM_WEIGHT: true
+      models.SHEET_HEAD_CP_SIM_POWER: 1.0
+      models.FUSION_PRIORITY_PATTERNS:
+        - "^SEMANTIC_CLASS_PRIOR_BLEND_HYPER$"
+        - "^TARGET_CLASS_QUANTILE_RULES_HYPER$"
+      models.FUSION_EXCLUSIVE_PRIORITY: false
+      models.FUSION_TOP_K: 4
+      models.FUSION_MAX_VAL_MAE_RATIO: 0
+      models.FUSION_TARGET_QUANTILE_RULES:
+        - pattern: "Pteridine|Pterin|Pteroic|Folic"
+          quantile: 0.85
+          target_requires:
+            - "Pteridine|Pterin|Pteroic|Folic"
+            - "Acyl CoA|Acyl CoAs|Fatty acyl thioesters"
+            - "Thiamines"
+        - pattern: "Acyl CoA|Acyl CoAs|Fatty acyl thioesters"
+          quantile: 0.4
+          target_requires:
+            - "Pteridine|Pterin|Pteroic|Folic"
+            - "Acyl CoA|Acyl CoAs|Fatty acyl thioesters"
+            - "Thiamines"
+        - pattern: "Biotin and derivatives"
+          quantile: 0.02
+          target_requires:
+            - "Pteridine|Pterin|Pteroic|Folic"
+            - "Acyl CoA|Acyl CoAs|Fatty acyl thioesters"
+            - "Thiamines"
+        - pattern: "Thiamines"
+          quantile: 0.65
+          target_requires:
+            - "Pteridine|Pterin|Pteroic|Folic"
+            - "Acyl CoA|Acyl CoAs|Fatty acyl thioesters"
+            - "Thiamines"
+        - pattern: "Tricarboxylic acids and derivatives"
+          quantile: 0.95
+          target_requires:
+            - "Pteridine|Pterin|Pteroic|Folic"
+            - "Acyl CoA|Acyl CoAs|Fatty acyl thioesters"
+            - "Thiamines"
+        - pattern: "\\(5'->5'\\)-dinucleotides"
+          quantile: 0.95
+          target_requires:
+            - "Pteridine|Pterin|Pteroic|Folic"
+            - "Acyl CoA|Acyl CoAs|Fatty acyl thioesters"
+            - "Thiamines"
+        - pattern: "Purine ribonucleoside monophosphates"
+          quantile: 0.85
+          target_requires:
+            - "Pteridine|Pterin|Pteroic|Folic"
+            - "Acyl CoA|Acyl CoAs|Fatty acyl thioesters"
+            - "Thiamines"
+        - pattern: "Butenolides"
+          quantile: 0.4
+          target_requires:
+            - "Pteridine|Pterin|Pteroic|Folic"
+            - "Acyl CoA|Acyl CoAs|Fatty acyl thioesters"
+            - "Thiamines"
+        - pattern: "Phenylpyrazoles"
+          quantile: 0.72
+          min_ref_iqr: 50.0
+        - pattern: "Cyclohexanols"
+          quantile: 1.0
+        - pattern: "Yohimbine alkaloids"
+          quantile: 0.94
+        - pattern: "Carbazoles"
+          quantile: 0.3
+          max_ref_iqr: 50.0
+        - pattern: "1,3,5-triazines"
+          quantile: 0.55
+          max_ref_iqr: 50.0
+        - pattern: "Isoindolones"
+          quantile: 0.05
+          max_ref_iqr: 50.0
+
+guardrails:
+  unified_model_only: true
+  no_auto_policy_switching: true
+  no_lookup_or_pool_candidates: true
+  no_per_dataset_overrides: true
+  forbidden_seed_ranges:
+    - [0, 69]
+
+outputs:
+  generated_config_dir: "v7/reports/_generated_configs"
+  stamp: "v7/reports/_stamps/V7_validate.ok"

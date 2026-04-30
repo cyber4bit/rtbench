@@ -1,0 +1,3 @@
+phase,sheet,avg_mae,avg_r2,beat_both,dataset_count,seed_counts
+V6_final,S4,13.551673892518142,0.9711096049768704,10,14,[10]
+V6_final,S5,43.769740941934266,0.6937402276628698,3,14,[10]

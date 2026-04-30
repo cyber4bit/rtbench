@@ -1,0 +1,63 @@
+version: v4
+status: frozen_debate_consensus
+strategy: data_loss_first
+
+objective:
+  sheets: [S4, S5]
+  final_seeds: "0:9"
+  required:
+    avg_mae_lt_unirt: true
+    avg_r2_gt_unirt: true
+    beat_both_min: 10
+    dataset_count_per_sheet: 14
+
+baseline_status:
+  v3:
+    rollback_baseline: true
+    S4:
+      our_avg_mae: 15.2877
+      unirt_avg_mae: 25.5482
+      our_avg_r2: 0.9701
+      unirt_avg_r2: 0.9144
+      beat_both: 9
+      failures: ["0179", "0180", "0234", "0261", "0264"]
+    S5:
+      our_avg_mae: 40.7842
+      unirt_avg_mae: 48.0916
+      our_avg_r2: 0.8047
+      unirt_avg_r2: 0.8305
+      beat_both: 9
+      failures: ["0027", "0183", "0184", "0185", "0282"]
+
+default_intervention:
+  type: per_dataset_loss_multiplier
+  fixed_sanity_weight: 3.0
+  default_weight: 1.0
+  rule_source: "v4/reports/preregistered_profile.csv"
+  rule_validation_seeds: [26, 27, 28, 29]
+
+seed_bands:
+  focal_sanity: [20, 21, 22]
+  profile: [23, 24, 25]
+  validation: [26, 27, 28, 29]
+  final: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+guardrails:
+  no_merged_split: true
+  no_zero_cp_conditioning: true
+  no_true_raw_copy_method_bug: true
+  no_test_seed_tuning: true
+  no_per_dataset_policy_cherry_pick: true
+  no_architecture_change_in_default_path: true
+  cp_audit_read_only: true
+
+deliverables:
+  - "v4/reports/preregistered_profile.csv"
+  - "v4/reports/cp_audit.json"
+  - "v4/reports/loss_weight_rules.json"
+  - "outputs_v4_L5_validate_S4/metrics/summary_vs_paper.csv"
+  - "outputs_v4_L5_validate_S5/metrics/summary_vs_paper.csv"
+  - "v4/reports/gate_report.md"
+  - "outputs_v4_L6_final_S4/metrics/summary_vs_paper.csv"
+  - "outputs_v4_L6_final_S5/metrics/summary_vs_paper.csv"
+  - "v4/reports/v4_report.md"

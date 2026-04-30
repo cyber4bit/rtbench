@@ -1,0 +1,208 @@
+data:
+  baseline_csv: data/baseline/supp_s4_mdl_tl.csv
+  baseline_dir: data/baseline
+  commit: c95c1aba24e5472fb2d8d3f0fbd5efe202b3cd60
+  cpvec:
+    ae1_batch_size: 256
+    ae1_dropout: 0.1
+    ae1_epochs: 600
+    ae1_hidden: 64
+    ae1_latent: 16
+    ae1_lr: 0.01
+    ae2_batch_size: 128
+    ae2_dropout: 0.1
+    ae2_epochs: 800
+    ae2_hidden: 256
+    ae2_latent: 32
+    ae2_lr: 0.01
+    col_w2v_batch_size: 512
+    col_w2v_dim: 16
+    col_w2v_epochs: 50
+    col_w2v_lr: 0.01
+    col_w2v_min_count: 2
+    col_w2v_neg: 6
+    col_w2v_window: 2
+    enabled: true
+    use_all_studies: true
+  gradient_points: 20
+  local_root: data/repoRT
+  repo_url: https://github.com/michaelwitting/RepoRT
+datasets:
+  expected_pretrain_count: 4157
+  external:
+  - 0019
+  - '0052'
+  - 0179
+  - 0180
+  - '0234'
+  - '0235'
+  - '0260'
+  - '0261'
+  - '0264'
+  - '0317'
+  - 0319
+  - '0321'
+  - '0323'
+  - '0331'
+  pretrain:
+  - 0019
+  - '0052'
+  - 0179
+  - 0180
+  - '0234'
+  - '0235'
+  - '0260'
+  - '0261'
+  - '0264'
+  - '0317'
+  - 0319
+  - '0321'
+  - '0323'
+  - '0331'
+metrics:
+  paper_avg_mae: 101.49
+  paper_avg_r2: 0.84
+  required_win_both: 8
+models:
+  CALIBRATE: true
+  CLIP_MULT: 2.0
+  ENABLE_FAIL_TUNING: true
+  ENABLE_HYPER_TL: true
+  ENABLE_LOCAL_TRANSFORM_CANDIDATES: false
+  ENABLE_MDL_SUBSET_CANDIDATES: false
+  ENABLE_MLP: false
+  ENABLE_TRANSFER_TRANSFORM_CANDIDATES: false
+  FUSION_RANK: mae_then_r2
+  FUSION_TOP_K: 3
+  HYPER_TL:
+    balance_pretrain_by_dataset: true
+    batch_size: 256
+    cp_hidden: 256
+    dropout: 0.1
+    embed_dim: 256
+    ensemble_lambdas: true
+    epochs: 120
+    grad_clip: 5.0
+    lr: 0.001
+    mol_hidden: 512
+    n_models: 5
+    patience: 20
+    ridge_lambda_b: 0.01
+    ridge_lambdas:
+    - 0.0
+    - 0.001
+    - 0.01
+    - 0.1
+    - 1.0
+    - 10.0
+    unified_finetune_epochs: 40
+    unified_finetune_lr: 0.001
+    unified_ridge_lambda_b: 0.0
+    unified_ridge_lambdas:
+    - 0.0
+    - 1.0e-06
+    - 0.001
+    - 0.1
+    use_mdl_subset_mol: true
+    use_task_weight: true
+    val_frac: 0.1
+    weight_decay: 0.0001
+  HYPER_TL_GUARANTEED_SLOT: true
+  LGBM_A:
+    bagging_fraction: 0.9
+    bagging_freq: 1
+    feature_fraction: 0.8
+    learning_rate: 0.02
+    n_estimators: 4000
+    num_leaves: 63
+    objective: mae
+  LGBM_B:
+    bagging_fraction: 0.85
+    bagging_freq: 1
+    feature_fraction: 0.85
+    learning_rate: 0.03
+    n_estimators: 2500
+    num_leaves: 127
+    objective: huber
+  LOCAL_TARGET_TRANSFORMS:
+  - log1p
+  - gradient_norm
+  ONLY_HYPER_TL: true
+  SINGLE_TASK_AUTO_POLICY:
+    duplicate_mol_key_rate_min: 0.12
+    enabled: true
+    high_outlier_rate: 0.1
+    medium: {}
+    medium_duplicate_rich:
+      ENABLE_ANCHOR_TL: true
+    medium_n_max: 400
+    near_dead_time_ratio_max: 2.0
+    small:
+      ENABLE_MLP: false
+      FUSION_TOP_K: 8
+    small_duplicate_mol_key_rate_min: 0.2
+    small_duplicate_rich:
+      ENABLE_ANCHOR_TL: true
+      ENABLE_HYPER_TL: true
+      FUSION_TOP_K: 8
+    small_n_max: 140
+    small_outlier:
+      FUSION_TOP_K: 6
+    tiny_n_max: 80
+    tiny_near_dead_time:
+      ENABLE_ANCHOR_TL: true
+      ENABLE_HYPER_TL: false
+      ENABLE_LOCAL_TRANSFORM_CANDIDATES: false
+      ENABLE_MLP: false
+      FUSION_TOP_K: 5
+  UNIFIED_MULTITASK: true
+  XGB_A:
+    colsample_bytree: 0.8
+    learning_rate: 0.02
+    max_depth: 6
+    n_estimators: 3000
+    objective: reg:absoluteerror
+    reg_lambda: 2.0
+    subsample: 0.9
+  XGB_B:
+    colsample_bytree: 0.85
+    learning_rate: 0.03
+    max_depth: 8
+    n_estimators: 2000
+    objective: reg:squarederror
+    reg_lambda: 2.0
+    subsample: 0.85
+  ENABLE_HYPER_PRIOR_CAL: true
+  PER_DATASET_MODEL_OVERRIDES:
+    0180:
+      TARGET_TRANSFORM: log1p
+      CALIBRATE: false
+outputs:
+  resume: true
+  root: outputs_v6_reseal_validate_S4
+seeds:
+  default: '50:59'
+split:
+  strategy: random
+  test: 0.1
+  train: 0.81
+  val: 0.09
+stats:
+  correction: bh_fdr
+  fdr_q: 0.05
+  test: wilcoxon_signed_rank_one_sided
+transfer_weights:
+  adaptive_source: true
+  max_scale: 2.0
+  min_scale: 0.25
+  similarity_power: 2.0
+  source: 0.1
+  source_weight_mode: per_sample
+  target: 1.0
+  target_transform: none
+  top_k_sources: 8
+  per_dataset_multiplier:
+    0180: 3.0
+    '0260': 3.0
+    '0261': 3.0
+    '0264': 3.0

@@ -1,0 +1,71 @@
+version: 1
+name: rtbench_v4
+strategy: data_loss_first
+
+source_debate: "D:/fenxi-codex/辩论/辩论.md"
+architecture_doc: "v4/ARCHITECTURE.md"
+
+v3_baseline:
+  worktree: ".claude/worktrees/romantic-wilson-87e23a"
+  S4:
+    config: ".claude/worktrees/romantic-wilson-87e23a/outputs_v3_s4/config.resolved.yaml"
+    config_sha1: ".claude/worktrees/romantic-wilson-87e23a/outputs_v3_s4/config.sha1"
+    summary: ".claude/worktrees/romantic-wilson-87e23a/outputs_v3_s4/v3_vs_uni_rt.csv"
+    per_seed: ".claude/worktrees/romantic-wilson-87e23a/outputs_v3_s4/metrics/per_seed.csv"
+  S5:
+    config: ".claude/worktrees/romantic-wilson-87e23a/outputs_v3_s5/config.resolved.yaml"
+    config_sha1: ".claude/worktrees/romantic-wilson-87e23a/outputs_v3_s5/config.sha1"
+    summary: ".claude/worktrees/romantic-wilson-87e23a/outputs_v3_s5/v3_vs_uni_rt.csv"
+    per_seed: ".claude/worktrees/romantic-wilson-87e23a/outputs_v3_s5/metrics/per_seed.csv"
+
+phases:
+  preflight:
+    scripts:
+      - "v4/scripts/failure_matrix.py"
+      - "v4/scripts/verify_cp_injection.py"
+  L1_focal_3x:
+    manifest: "v4/configs/v4_focal_3x.yaml"
+    seeds: [20, 21, 22]
+    may_run_parallel_with: ["L2_profile", "L3_cp_audit"]
+  L2_profile:
+    script: "v4/scripts/profile_failures.py"
+    seeds: [23, 24, 25]
+    output: "v4/reports/preregistered_profile.csv"
+  L3_cp_audit:
+    script: "v4/scripts/cp_audit.py"
+    output: "v4/reports/cp_audit.json"
+    rule_input: false
+  L4_rules:
+    script: "v4/scripts/derive_loss_rules.py"
+    consumes_only: "v4/reports/preregistered_profile.csv"
+    output: "v4/reports/loss_weight_rules.json"
+  L5_validate:
+    manifest: "v4/configs/v4_validate.yaml"
+    seeds: [26, 27, 28, 29]
+  gate_check:
+    script: "v4/scripts/finalize_v4.py --gate-check"
+    output: "v4/reports/_stamps/gate.ok"
+  L6_final:
+    manifest: "v4/configs/v4_final_eval.yaml"
+    seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    requires: "v4/reports/_stamps/gate.ok"
+  report:
+    script: "v4/scripts/finalize_v4.py --emit-report"
+    output: "v4/reports/v4_report.md"
+
+gates:
+  S4:
+    avg_mae_lt: 25.5482
+    avg_r2_gt: 0.9144
+    beat_both_min: 10
+  S5:
+    avg_mae_lt: 48.0916
+    avg_r2_gt: 0.8305
+    beat_both_min: 10
+
+forbidden:
+  - "Use seeds 0..9 before gate.ok."
+  - "Use L1 output in L4 rule derivation."
+  - "Use CP audit values as loss-weight inputs."
+  - "Use merged split."
+  - "Change architecture, lr, dropout, hidden dimensions, or optimizer in default v4."

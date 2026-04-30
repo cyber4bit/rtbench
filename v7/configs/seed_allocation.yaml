@@ -1,0 +1,17 @@
+version: v7
+seed_bands:
+  V7_probe:
+    seeds: [70]
+    purpose: "single-seed diagnostic probe; not a model-selection claim"
+  V7_validate:
+    seeds: [71, 72, 73, 74, 75, 76, 77, 78, 79, 80]
+    purpose: "fresh v7 development validation after v6 and strict L7 unified results were observed"
+  V7_final:
+    seeds: [81, 82, 83, 84, 85, 86, 87, 88, 89, 90]
+    purpose: "locked v7 final evaluation; only run after V7_validate review"
+
+forbidden_combinations:
+  - description: "V7 validation/final may not reuse v3/v4/v6 seed bands"
+    detector: "run_phase.py forbidden_seed_ranges guardrail"
+  - description: "V7 final may not run without an explicit validate stamp"
+    detector: "V7_final manifest requires v7/reports/_stamps/V7_validate.ok"

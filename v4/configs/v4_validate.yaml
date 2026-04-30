@@ -1,0 +1,67 @@
+# Phase manifest for run_phase.py. This is NOT a standalone rtbench config.
+phase: L5_validate
+kind: phase_manifest
+description: "Held-out validation of L4-derived loss weights."
+
+base_configs:
+  S4: ".claude/worktrees/romantic-wilson-87e23a/outputs_v3_s4/config.resolved.yaml"
+  S5: ".claude/worktrees/romantic-wilson-87e23a/outputs_v3_s5/config.resolved.yaml"
+
+requires:
+  - "v4/reports/_stamps/rules.ok"
+  - "v4/reports/loss_weight_rules.json"
+
+overrides:
+  seeds.default: "26:29"
+  outputs.root_template: "outputs_v4_L5_validate_{sheet}"
+  transfer_weights.per_dataset_multiplier_from: "v4/reports/loss_weight_rules.json"
+  sheet_overrides:
+    S4:
+      models.ENABLE_HYPER_PRIOR_CAL: true
+      models.FUSION_TOP_K: 3
+    S5:
+      models.ENABLE_HILIC_HYPER_TL: true
+      models.HILIC_HYPER_TL:
+        n_models: 1
+        epochs: 30
+        batch_size: 256
+        patience: 5
+        balance_pretrain_by_dataset: true
+        replace_global_bundles: false
+        include_global_bundles: true
+        enable_prior_calibration: true
+      models.ENABLE_HYPER_PRIOR_CAL: true
+      models.ENABLE_WEIGHTED_CALIBRATED_MOL_LOOKUP: true
+      models.WEIGHTED_CALIBRATED_MOL_MIN_MEDIAN_TO_T0: 2.0
+      models.ENABLE_HILIC_POOL_CANDIDATES: true
+      models.HILIC_POOL:
+        enable_lgbm: true
+        enable_xgb: false
+        early_stopping_rounds: 40
+        lgbm:
+          n_estimators: 900
+          num_leaves: 31
+          learning_rate: 0.03
+          objective: mae
+          feature_fraction: 0.85
+          bagging_fraction: 0.9
+          bagging_freq: 1
+          min_child_samples: 8
+      models.SINGLE_TASK_AUTO_POLICY.tiny_near_dead_time.EARLY_CANDIDATES_ONLY: true
+      models.SINGLE_TASK_AUTO_POLICY.tiny_near_dead_time.CANDIDATE_NAME_ALLOWLIST:
+        - "^EXACT_MOL_LOOKUP$"
+        - "^CAL_MOL_LOOKUP$"
+      models.SINGLE_TASK_AUTO_POLICY.tiny_near_dead_time.ENABLE_HILIC_POOL_CANDIDATES: false
+      models.SINGLE_TASK_AUTO_POLICY.tiny_near_dead_time.FUSION_TOP_K: 2
+      models.SINGLE_TASK_AUTO_POLICY.tiny_near_dead_time.FUSION_MAX_VAL_MAE_RATIO: 1.5
+      models.FUSION_TOP_K: 8
+      models.CALIBRATE: false
+
+guardrails:
+  no_rule_mutation: true
+  no_seed_0_9: true
+  config_diff_whitelist: "v4/configs/config_diff_whitelist.yaml"
+
+outputs:
+  generated_config_dir: "v4/reports/_generated_configs"
+  stamp: "v4/reports/_stamps/L5_validate.ok"

@@ -1,0 +1,78 @@
+_base:
+- _bases/_base_rplc_14x14.yaml
+- _bases/_base_transfer.yaml
+- _bases/_base_models_tree.yaml
+data:
+  baseline_csv: data/baseline/unirt_sota_28.csv
+datasets:
+  pretrain:
+  - '0027'
+  - 0183
+  - 0184
+  - 0185
+  - '0231'
+  - 0282
+  - 0283
+  - '0372'
+  - '0373'
+  - '0374'
+  - '0375'
+  - '0376'
+  - '0377'
+  - 0378
+  external:
+  - '0027'
+  - 0183
+  - 0184
+  - 0185
+  - '0231'
+  - 0282
+  - 0283
+  - '0372'
+  - '0373'
+  - '0374'
+  - '0375'
+  - '0376'
+  - '0377'
+  - 0378
+  expected_pretrain_count: 1959
+  exclude_target_from_source: true
+  failed_override: []
+split:
+  train: 0.8
+  val: 0.1
+  test: 0.1
+  strategy: random
+models:
+  ENABLE_FAIL_TUNING: false
+  ENABLE_HYPER_TL: false
+  FUSION_TOP_K: 4
+  CALIBRATE: true
+  ENABLE_MLP: false
+  CLIP_MULT: 1.5
+transfer_weights:
+  similarity_power: 2.0
+  min_scale: 0.25
+  max_scale: 2.0
+  target_normalize: false
+seeds:
+  default: 0,2,4,6,8,10,12,14,16,18
+metrics:
+  baseline_method: Uni-RT
+  report_style: unirt
+  unirt_baseline_csv: data/baseline/unirt_sota_28.csv
+  unirt_mode: HILIC
+  ours_label: Ours
+  ours_n_model: 14
+  paper_avg_mae: 48.09
+  paper_avg_r2: 0.83
+  paper_avg_medae: 27.61
+  paper_avg_mre: 0.19
+  required_win_both: 8
+stats:
+  test: two_tailed_paired_t_test_and_wilcoxon
+  correction: bh_fdr
+  fdr_q: 0.05
+outputs:
+  root: outputs_vs_unirt_hilic
+  resume: true

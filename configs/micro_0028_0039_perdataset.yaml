@@ -1,0 +1,57 @@
+_base:
+- _bases/_base_rplc_14x14.yaml
+- _bases/_base_transfer.yaml
+- _bases/_base_models_tree.yaml
+datasets:
+  external:
+  - 0028
+  - 0039
+  failed_override:
+  - 0028
+  - 0039
+models:
+  ENABLE_FAIL_TUNING: true
+  FUSION_TOP_K: 1
+  CALIBRATE: false
+  ENABLE_MLP: false
+  CLIP_MULT: 1.5
+  XGB_A:
+    n_estimators: 2000
+    learning_rate: 0.03
+  XGB_B:
+    n_estimators: 1500
+    learning_rate: 0.04
+  LGBM_A:
+    n_estimators: 2600
+    learning_rate: 0.03
+  LGBM_B:
+    n_estimators: 2000
+    learning_rate: 0.04
+  FAIL_XGB:
+    n_estimators: 2800
+    max_depth: 7
+    learning_rate: 0.02
+    subsample: 0.95
+    colsample_bytree: 0.8
+    objective: reg:absoluteerror
+    reg_lambda: 3.0
+  FAIL_LGBM:
+    n_estimators: 3400
+    num_leaves: 127
+    learning_rate: 0.02
+    objective: mae
+    feature_fraction: 0.85
+    bagging_fraction: 0.9
+    bagging_freq: 1
+transfer_weights:
+  source: 10.0
+  similarity_power: 2.0
+  min_scale: 0.25
+  max_scale: 2.0
+  top_k_sources: 5
+  source_weight_mode: per_dataset
+  target_transform: none
+seeds:
+  default: 0:2
+outputs:
+  root: outputs_micro_0028_0039_perdataset_v1

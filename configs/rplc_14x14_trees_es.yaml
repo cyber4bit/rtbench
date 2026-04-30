@@ -1,0 +1,87 @@
+_base:
+- _bases/_base_rplc_14x14.yaml
+- _bases/_base_transfer.yaml
+- _bases/_base_models_tree.yaml
+datasets:
+  external:
+  - 0028
+  - '0032'
+  - 0039
+  - 0049
+  - '0050'
+  - '0051'
+  - '0056'
+  - '0057'
+  - '0060'
+  - '0233'
+  - '0255'
+  - '0274'
+  - '0275'
+  - '0276'
+  failed_override:
+  - 0028
+  - '0032'
+  - 0039
+  - 0049
+  - '0050'
+  - '0051'
+  - '0056'
+  - '0060'
+  - '0233'
+  - '0274'
+  - '0275'
+  - '0276'
+models:
+  ENABLE_FAIL_TUNING: true
+  EARLY_STOPPING_ROUNDS: 200
+  FUSION_TOP_K: 3
+  FUSION_RANK: mae_then_r2
+  CALIBRATE: true
+  ENABLE_MLP: false
+  CLIP_MULT: 2.5
+  XGB_A:
+    n_estimators: 6000
+    tree_method: hist
+  XGB_B:
+    n_estimators: 6000
+    tree_method: hist
+  LGBM_A:
+    n_estimators: 8000
+  LGBM_B:
+    n_estimators: 8000
+  FAIL_XGB:
+    n_estimators: 8000
+    max_depth: 7
+    learning_rate: 0.012
+    subsample: 0.95
+    colsample_bytree: 0.8
+    objective: reg:absoluteerror
+    reg_lambda: 3.0
+    tree_method: hist
+  FAIL_LGBM:
+    n_estimators: 10000
+    num_leaves: 127
+    learning_rate: 0.012
+    objective: mae
+    feature_fraction: 0.85
+    bagging_fraction: 0.9
+    bagging_freq: 1
+  FAIL_CP_XGB:
+    n_estimators: 8000
+    max_depth: 6
+    learning_rate: 0.015
+    subsample: 0.9
+    colsample_bytree: 0.9
+    objective: reg:absoluteerror
+    reg_lambda: 3.0
+    tree_method: hist
+transfer_weights:
+  similarity_power: 2.0
+  min_scale: 0.25
+  max_scale: 2.0
+  target_normalize: false
+seeds:
+  default: 0:4
+outputs:
+  root: outputs_rplc_14x14_trees_es_v1
+  resume: false

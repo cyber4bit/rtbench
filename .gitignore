@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.venv*/
+*.egg
+dist/
+build/
+
+# 实验输出（148个实验目录全部排除，仅保留3个最佳结果）
+outputs*/
+outputs*.csv
+!outputs_rplc_14x14_cpvec_hyper_mdlmol_plus0276_v1/
+outputs_rplc_14x14_cpvec_hyper_mdlmol_plus0276_v1/*
+!outputs_rplc_14x14_cpvec_hyper_mdlmol_plus0276_v1/metrics/
+!outputs_rplc_14x14_cpvec_hyper_mdlmol_plus0276_v1/metrics/**
+!outputs_supp_eval_s4_combo_v5_uni_5seed/
+outputs_supp_eval_s4_combo_v5_uni_5seed/*
+!outputs_supp_eval_s4_combo_v5_uni_5seed/S4/
+!outputs_supp_eval_s4_combo_v5_uni_5seed/S4/**
+!outputs_supp_eval_s5_combo_v3_final/
+outputs_supp_eval_s5_combo_v3_final/*
+!outputs_supp_eval_s5_combo_v3_final/S5/
+!outputs_supp_eval_s5_combo_v3_final/S5/**
+
+# Phase18 审计工作区（含伪造数据，排除）
+phase18_audit_workspace/
+
+# IDE/OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# 大型二进制
+*.jpg
+*.png
+*.pdf
+
+# Coverage
+.coverage
+htmlcov/
+coverage.json
+
+# 本地工作区
+.pytest_cache/
+.claude/

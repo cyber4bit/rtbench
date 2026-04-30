@@ -1,0 +1,104 @@
+_base:
+- _bases/_base_rplc_14x14.yaml
+- _bases/_base_transfer.yaml
+- _bases/_base_models_tree.yaml
+datasets:
+  external:
+  - 0028
+  - '0032'
+  - 0039
+  - '0051'
+  - '0233'
+  - '0255'
+  failed_override:
+  - 0028
+  - '0032'
+  - 0039
+  - '0051'
+  - '0233'
+models:
+  ENABLE_HYPER_TL: true
+  ONLY_HYPER_TL: false
+  ENABLE_FAIL_TUNING: true
+  FUSION_TOP_K: 3
+  CALIBRATE: false
+  ENABLE_MLP: false
+  CLIP_MULT: 1.5
+  XGB_A:
+    n_estimators: 1200
+    learning_rate: 0.03
+  XGB_B:
+    n_estimators: 900
+    learning_rate: 0.04
+  LGBM_A:
+    n_estimators: 1600
+    learning_rate: 0.03
+  LGBM_B:
+    n_estimators: 1200
+    learning_rate: 0.04
+  FAIL_XGB:
+    n_estimators: 2000
+    max_depth: 7
+    learning_rate: 0.02
+    subsample: 0.95
+    colsample_bytree: 0.8
+    objective: reg:absoluteerror
+    reg_lambda: 3.0
+  FAIL_LGBM:
+    n_estimators: 2400
+    num_leaves: 127
+    learning_rate: 0.02
+    objective: mae
+    feature_fraction: 0.85
+    bagging_fraction: 0.9
+    bagging_freq: 1
+  LOCAL_XGB:
+    n_estimators: 1600
+    max_depth: 6
+    learning_rate: 0.03
+    subsample: 0.9
+    colsample_bytree: 0.8
+    objective: reg:absoluteerror
+    reg_lambda: 2.0
+  LOCAL_LGBM:
+    n_estimators: 2000
+    num_leaves: 63
+    learning_rate: 0.03
+    objective: mae
+    feature_fraction: 0.9
+    bagging_fraction: 0.9
+    bagging_freq: 1
+  RIDGE_TL_ALPHA: 10.0
+  RIDGE_LOCAL_ALPHA: 1.0
+  HYPER_TL:
+    n_models: 5
+    embed_dim: 256
+    mol_hidden: 1024
+    cp_hidden: 512
+    dropout: 0.05
+    epochs: 120
+    batch_size: 256
+    lr: 0.001
+    weight_decay: 0.0001
+    val_frac: 0.1
+    patience: 12
+    ridge_lambdas:
+    - 0.001
+    - 0.01
+    - 0.1
+    - 1.0
+    - 10.0
+    - 100.0
+    - 1000.0
+    ridge_lambda_b: 0.01
+transfer_weights:
+  similarity_power: 2.0
+  min_scale: 0.25
+  max_scale: 2.0
+  top_k_sources: 5
+  source_weight_mode: per_sample
+  target_transform: none
+seeds:
+  default: 0:4
+outputs:
+  root: outputs_quick6_combo_hyper_ridge_trees_v1

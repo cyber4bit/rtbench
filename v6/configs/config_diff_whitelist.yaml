@@ -1,0 +1,38 @@
+# Whitelist for finalize_v6.py --gate-check
+# Generated v6 configs MUST differ from the frozen v3 baseline only in these keys.
+# Any other diff aborts the gate check.
+
+allowed_keys:
+  - "seeds.default"
+  - "transfer_weights.per_dataset_multiplier"
+  - "outputs.root"
+  - "models.ENABLE_HILIC_HYPER_TL"
+  - "models.HILIC_HYPER_TL"
+  - "models.ENABLE_HYPER_PRIOR_CAL"
+  - "models.ENABLE_WEIGHTED_CALIBRATED_MOL_LOOKUP"
+  - "models.WEIGHTED_CALIBRATED_MOL_MIN_MEDIAN_TO_T0"
+  - "models.ENABLE_HILIC_POOL_CANDIDATES"
+  - "models.HILIC_POOL"
+  - "models.SINGLE_TASK_AUTO_POLICY"
+  - "models.PER_DATASET_MODEL_OVERRIDES"
+  - "models.FUSION_TOP_K"
+  - "models.FUSION_MAX_VAL_MAE_RATIO"
+  - "models.PRED_CLIP_UPPER_TRAIN_QUANTILE"
+  - "models.CALIBRATE"
+
+forbidden_changes:
+  - "models.HYPER_TL.embed_dim"
+  - "models.HYPER_TL.mol_hidden"
+  - "models.HYPER_TL.cp_hidden"
+  - "models.HYPER_TL.dropout"
+  - "models.HYPER_TL.epochs"
+  - "models.HYPER_TL.n_models"
+  - "models.UNIFIED_MULTITASK"
+  - "models.ONLY_HYPER_TL"
+  - "transfer_weights.source"
+  - "transfer_weights.target"
+  - "transfer_weights.target_transform"
+  - "split.strategy"
+  - "split.train"
+  - "split.val"
+  - "split.test"

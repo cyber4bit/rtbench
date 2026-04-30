@@ -1,0 +1,34 @@
+# Phase manifest for run_phase.py. This is NOT a standalone rtbench config.
+phase: L1_focal_3x
+kind: phase_manifest
+description: "Fixed 3x failure-dataset loss sanity check; no coefficient search."
+
+base_configs:
+  S4: ".claude/worktrees/romantic-wilson-87e23a/outputs_v3_s4/config.resolved.yaml"
+  S5: ".claude/worktrees/romantic-wilson-87e23a/outputs_v3_s5/config.resolved.yaml"
+
+overrides:
+  seeds.default: "20:22"
+  outputs.root_template: "outputs_v4_L1_focal_3x_{sheet}"
+  transfer_weights.per_dataset_multiplier:
+    S4:
+      "0179": 3.0
+      "0180": 3.0
+      "0234": 3.0
+      "0261": 3.0
+      "0264": 3.0
+    S5:
+      "0027": 3.0
+      "0183": 3.0
+      "0184": 3.0
+      "0185": 3.0
+      "0282": 3.0
+
+guardrails:
+  no_rule_search: true
+  no_seed_0_9: true
+  config_diff_whitelist: "v4/configs/config_diff_whitelist.yaml"
+
+outputs:
+  generated_config_dir: "v4/reports/_generated_configs"
+  stamp: "v4/reports/_stamps/L1_focal_3x.ok"

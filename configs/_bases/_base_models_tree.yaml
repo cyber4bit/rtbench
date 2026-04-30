@@ -1,0 +1,35 @@
+# Base tree-model defaults for transfer and local XGB/LGBM candidates.
+# Override under `models.XGB_*`, `models.LGBM_*`, or `models.EARLY_STOPPING_ROUNDS` in child configs.
+models:
+  XGB_A:
+    n_estimators: 3000
+    max_depth: 6
+    learning_rate: 0.02
+    subsample: 0.9
+    colsample_bytree: 0.8
+    objective: reg:absoluteerror
+    reg_lambda: 2.0
+  XGB_B:
+    n_estimators: 2000
+    max_depth: 8
+    learning_rate: 0.03
+    subsample: 0.85
+    colsample_bytree: 0.85
+    objective: reg:squarederror
+    reg_lambda: 2.0
+  LGBM_A:
+    n_estimators: 4000
+    num_leaves: 63
+    learning_rate: 0.02
+    objective: mae
+    feature_fraction: 0.8
+    bagging_fraction: 0.9
+    bagging_freq: 1
+  LGBM_B:
+    n_estimators: 2500
+    num_leaves: 127
+    learning_rate: 0.03
+    objective: huber
+    feature_fraction: 0.85
+    bagging_fraction: 0.85
+    bagging_freq: 1

@@ -1,0 +1,56 @@
+_base:
+- _bases/_base_rplc_14x14.yaml
+- _bases/_base_transfer.yaml
+datasets:
+  external:
+  - 0028
+  - '0032'
+  - 0039
+  - 0049
+  - '0050'
+  - '0051'
+  - '0056'
+  - '0057'
+  - '0060'
+  - '0233'
+  - '0255'
+  - '0274'
+  - '0275'
+  - '0276'
+models:
+  ONLY_HYPER_TL: true
+  ENABLE_HYPER_TL: true
+  ENABLE_FAIL_TUNING: false
+  FUSION_TOP_K: 1
+  CALIBRATE: false
+  ENABLE_MLP: false
+  CLIP_MULT: 1.5
+  HYPER_TL:
+    balance_pretrain_by_dataset: true
+    n_models: 5
+    embed_dim: 256
+    mol_hidden: 1024
+    cp_hidden: 512
+    dropout: 0.05
+    epochs: 140
+    batch_size: 256
+    lr: 0.001
+    weight_decay: 0.0001
+    val_frac: 0.1
+    patience: 14
+    ridge_lambdas:
+    - 0.01
+    - 0.1
+    - 1.0
+    - 10.0
+    - 100.0
+    - 1000.0
+    ridge_lambda_b: 0.1
+transfer_weights:
+  adaptive_source: false
+  target_transform: none
+seeds:
+  default: 0:29
+outputs:
+  root: outputs_rplc_14x14_hyper_best_ridgelim_v1
+  resume: false

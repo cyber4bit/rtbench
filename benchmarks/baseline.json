@@ -1,0 +1,38 @@
+{
+  "benchmarks": {
+    "candidate_builder": {
+      "candidate_count": 22,
+      "max_ms": 58.893300003546756,
+      "mean_ms": 51.142860000254586,
+      "min_ms": 46.4051999952062,
+      "peak_python_bytes": 32110,
+      "repeats": 5,
+      "source_rows": 10,
+      "target_rows": 16
+    },
+    "cpvec": {
+      "cold_mean_ms": 373.31300000005285,
+      "cold_min_ms": 356.2720999980229,
+      "cold_peak_python_bytes": 430977,
+      "cp_dim": 18,
+      "study_count": 4,
+      "warm_mean_ms": 18.41990000199682,
+      "warm_min_ms": 17.32320000155596,
+      "warm_peak_python_bytes": 362351
+    },
+    "data_loading": {
+      "dataset_count": 3,
+      "external_rows": 12,
+      "feature_width": 2162,
+      "max_ms": 103.44389999954728,
+      "mean_ms": 101.29186666502694,
+      "min_ms": 100.04820000176551,
+      "peak_python_bytes": 1397115,
+      "repeats": 3,
+      "source_rows": 24
+    }
+  },
+  "generated_at": "2026-04-13T21:59:29+08:00",
+  "platform": "Windows-11-10.0.26100-SP0",
+  "python": "3.13.5"
+}

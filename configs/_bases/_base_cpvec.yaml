@@ -1,0 +1,25 @@
+# Base CP vectorization defaults used by CPEncoder-enabled experiments.
+# Override under `data.cpvec.*` for W2V dimensions, AE sizes, epochs, or study-scope behavior.
+data:
+  cpvec:
+    enabled: true
+    use_all_studies: true
+    col_w2v_dim: 16
+    col_w2v_window: 2
+    col_w2v_neg: 6
+    col_w2v_epochs: 50
+    col_w2v_lr: 0.01
+    col_w2v_batch_size: 512
+    col_w2v_min_count: 2
+    ae1_latent: 16
+    ae1_hidden: 64
+    ae1_dropout: 0.1
+    ae1_epochs: 600
+    ae1_lr: 0.01
+    ae1_batch_size: 256
+    ae2_latent: 32
+    ae2_hidden: 256
+    ae2_dropout: 0.1
+    ae2_epochs: 800
+    ae2_lr: 0.01
+    ae2_batch_size: 128

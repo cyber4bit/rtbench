@@ -1,0 +1,9 @@
+{
+  "cp_sensitivity_p": null,
+  "film_grad_ok": "n/a",
+  "film_present": false,
+  "findings": [],
+  "hard_bug": false,
+  "schema_version": 1,
+  "target": "rtbench"
+}
