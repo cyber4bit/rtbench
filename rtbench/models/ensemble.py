@@ -469,13 +469,14 @@ def train_and_ensemble(
     include_test_diagnostics = bool(model_cfg.get("DIAGNOSTIC_INCLUDE_TEST_METRICS", False))
     candidate_diagnostics = []
     for rank, candidate in enumerate(candidates):
+        weight = float(weight_by_rank.get(rank, 0.0))
         row = {
             "rank": int(rank + 1),
             "name": str(candidate.name),
             "val_mae": float(candidate.val_metrics.get("mae", float("nan"))),
             "val_r2": float(candidate.val_metrics.get("r2", float("nan"))),
-            "selected": bool(rank in weight_by_rank),
-            "weight": float(weight_by_rank.get(rank, 0.0)),
+            "selected": bool(abs(weight) > 1e-12),
+            "weight": weight,
         }
         if include_test_diagnostics and ctx.y_test_sec is not None:
             test_metrics = compute_metrics(ctx.y_test_sec, candidate.test_pred)

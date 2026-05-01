@@ -165,6 +165,41 @@ class TestEnsembleFusion(unittest.TestCase):
         self.assertAlmostEqual(result.feature_group_importance["mol"], 0.25, places=6)
         self.assertAlmostEqual(result.feature_group_importance["cp"], 0.75, places=6)
 
+    def test_candidate_diagnostics_selected_requires_nonzero_weight(self):
+        inputs = _base_train_inputs()
+        inputs["model_cfg"] = dict(inputs["model_cfg"])
+        inputs["model_cfg"].update({"FUSION_TOP_K": 2, "CALIBRATE": False, "CLIP_MULT": 10.0})
+        y_val = np.asarray(inputs["y_target_sec"])[inputs["split"].val_idx]
+
+        def fake_build_candidates(_ctx):
+            return [
+                CandidateOutput(
+                    name="USED",
+                    val_pred=np.array([130.0, 140.0], dtype=np.float32),
+                    test_pred=np.array([150.0, 160.0], dtype=np.float32),
+                    val_metrics=compute_metrics(y_val, np.array([130.0, 140.0], dtype=np.float32)),
+                    model=_DummyFeatureModel([1.0, 1.0]),
+                ),
+                CandidateOutput(
+                    name="ZERO_WEIGHT",
+                    val_pred=np.array([131.0, 141.0], dtype=np.float32),
+                    test_pred=np.array([151.0, 161.0], dtype=np.float32),
+                    val_metrics=compute_metrics(y_val, np.array([131.0, 141.0], dtype=np.float32)),
+                    model=_DummyFeatureModel([1.0, 1.0]),
+                ),
+            ]
+
+        with (
+            mock.patch.object(ensemble_module, "build_candidates", side_effect=fake_build_candidates),
+            mock.patch.object(ensemble_module, "_optimize_weights", return_value=np.array([1.0, 0.0], dtype=np.float32)),
+        ):
+            result = ensemble_module.train_and_ensemble(**inputs)
+
+        diagnostics = {row["name"]: row for row in result.candidate_diagnostics or []}
+        self.assertTrue(diagnostics["USED"]["selected"])
+        self.assertFalse(diagnostics["ZERO_WEIGHT"]["selected"])
+        self.assertEqual(diagnostics["ZERO_WEIGHT"]["weight"], 0.0)
+
 
 if __name__ == "__main__":
     unittest.main()
