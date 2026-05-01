@@ -85,13 +85,78 @@ def _comparison(repo_root: Path, phase: str, sheet: str) -> tuple[pd.DataFrame, 
     return comp, summary
 
 
+def _failure_table(comp: pd.DataFrame) -> pd.DataFrame:
+    if comp.empty:
+        return pd.DataFrame()
+    failed = comp.loc[~comp["beat_both"].astype(bool)].copy()
+    if failed.empty:
+        return failed
+    failed["mae_gap"] = (failed["our_mae_mean"] - failed["uni_rt_mae"]).clip(lower=0.0)
+    failed["r2_gap"] = (failed["uni_rt_r2"] - failed["our_r2_mean"]).clip(lower=0.0)
+    failed["priority_score"] = failed["mae_gap"] + (100.0 * failed["r2_gap"])
+    failed["failure_reason"] = failed.apply(
+        lambda row: ",".join(
+            name
+            for name, missed in (
+                ("mae", not bool(row["beat_mae"])),
+                ("r2", not bool(row["beat_r2"])),
+            )
+            if missed
+        ),
+        axis=1,
+    )
+    cols = [
+        "phase",
+        "sheet",
+        "dataset",
+        "failure_reason",
+        "priority_score",
+        "mae_gap",
+        "r2_gap",
+        "our_mae_mean",
+        "uni_rt_mae",
+        "our_r2_mean",
+        "uni_rt_r2",
+        "delta_mae",
+        "delta_r2",
+        "seed_count",
+    ]
+    return failed[cols].sort_values(["sheet", "priority_score", "dataset"], ascending=[True, False, True])
+
+
+def _candidate_summary(repo_root: Path, phase: str, sheet: str) -> pd.DataFrame:
+    path = repo_root / _phase_dir(phase, sheet) / "metrics/candidate_diagnostics.csv"
+    if not path.exists():
+        return pd.DataFrame()
+    df = pd.read_csv(path, dtype={"dataset": str}, encoding="utf-8")
+    if df.empty or "candidate_name" not in df.columns:
+        return pd.DataFrame()
+    df["dataset"] = df["dataset"].astype(str).str.zfill(4)
+    df["sheet"] = sheet
+    group_cols = ["sheet", "dataset", "candidate_name"]
+    agg: dict[str, Any] = {
+        "selected": "sum",
+        "candidate_rank": "count",
+    }
+    for col in ("val_mae", "val_r2", "test_mae", "test_r2", "weight"):
+        if col in df.columns:
+            agg[col] = "mean"
+    out = df.groupby(group_cols, dropna=False).agg(agg).reset_index()
+    out = out.rename(columns={"selected": "selected_count", "candidate_rank": "observed_count"})
+    return out.sort_values(["sheet", "dataset", "selected_count", "candidate_name"], ascending=[True, True, False, True])
+
+
 def summarize(repo_root: Path, phase: str) -> None:
     report_dir = repo_root / "v7/reports"
     report_dir.mkdir(parents=True, exist_ok=True)
     summaries = []
     checks = []
+    failure_tables = []
+    candidate_tables = []
     for sheet in ("S4", "S5"):
-        _, summary = _comparison(repo_root, phase, sheet)
+        comp, summary = _comparison(repo_root, phase, sheet)
+        failure_tables.append(_failure_table(comp))
+        candidate_tables.append(_candidate_summary(repo_root, phase, sheet))
         summaries.append(summary)
         threshold = THRESHOLDS[sheet]
         checks.extend(
@@ -107,6 +172,20 @@ def summarize(repo_root: Path, phase: str) -> None:
         writer = csv.DictWriter(f, fieldnames=list(summaries[0].keys()))
         writer.writeheader()
         writer.writerows(summaries)
+
+    failures = pd.concat([df for df in failure_tables if not df.empty], ignore_index=True) if any(not df.empty for df in failure_tables) else pd.DataFrame()
+    failures_path = report_dir / f"{phase}_failures.csv"
+    if not failures.empty:
+        failures.to_csv(failures_path, index=False, encoding="utf-8")
+    else:
+        failures_path.write_text("", encoding="utf-8")
+
+    candidates = pd.concat([df for df in candidate_tables if not df.empty], ignore_index=True) if any(not df.empty for df in candidate_tables) else pd.DataFrame()
+    candidates_path = report_dir / f"{phase}_candidate_summary.csv"
+    if not candidates.empty:
+        candidates.to_csv(candidates_path, index=False, encoding="utf-8")
+    else:
+        candidates_path.write_text("", encoding="utf-8")
 
     ok = all(item[2] for item in checks)
     lines = [
@@ -126,9 +205,33 @@ def summarize(repo_root: Path, phase: str) -> None:
     lines.extend(["", "| Sheet | Check | Pass | Detail |", "| --- | --- | --- | --- |"])
     for sheet, name, passed, detail in checks:
         lines.append(f"| {sheet} | {name} | {'PASS' if passed else 'FAIL'} | {detail} |")
+    lines.extend(["", "## Failure Priorities", ""])
+    if failures.empty:
+        lines.append("No failed beat-both datasets.")
+    else:
+        lines.extend(
+            [
+                "| Sheet | Dataset | Reason | Priority | MAE Gap | R2 Gap | Our MAE | Uni-RT MAE | Our R2 | Uni-RT R2 |",
+                "| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+            ]
+        )
+        for row in failures.sort_values(["sheet", "priority_score", "dataset"], ascending=[True, False, True]).to_dict("records"):
+            lines.append(
+                f"| {row['sheet']} | {row['dataset']} | {row['failure_reason']} | "
+                f"{row['priority_score']:.4f} | {row['mae_gap']:.4f} | {row['r2_gap']:.4f} | "
+                f"{row['our_mae_mean']:.4f} | {row['uni_rt_mae']:.4f} | "
+                f"{row['our_r2_mean']:.4f} | {row['uni_rt_r2']:.4f} |"
+            )
+    lines.extend(["", "## Candidate Diagnostics", ""])
+    if candidates.empty:
+        lines.append("No candidate diagnostics were found for this phase.")
+    else:
+        lines.append(f"Candidate summary written to `{candidates_path.as_posix()}`.")
     report_path = report_dir / f"{phase}_report.md"
     report_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
     print(f"wrote {summary_path}")
+    print(f"wrote {failures_path}")
+    print(f"wrote {candidates_path}")
     print(f"wrote {report_path}")
 
 
