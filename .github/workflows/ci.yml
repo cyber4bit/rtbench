@@ -28,7 +28,18 @@ jobs:
           python -m pip install -e .[test]
 
       - name: Run cross-platform test suite
-        run: python -m pytest -q -m "not smoke"
+        shell: pwsh
+        run: |
+          python -m pytest -q -m "not smoke" *> pytest-output.log
+          $exitCode = $LASTEXITCODE
+          Get-Content pytest-output.log
+          if ($exitCode -ne 0) {
+            $lines = Get-Content pytest-output.log
+            $tail = ($lines | Select-Object -Last 80) -join "`n"
+            $message = $tail -replace "%", "%25" -replace "`r", "%0D" -replace "`n", "%0A"
+            Write-Output "::error title=pytest failed::$message"
+            exit $exitCode
+          }
 
   benchmark-baseline:
     name: Benchmark Baseline (ubuntu, py3.13)
