@@ -13,7 +13,7 @@ from ..config import Config
 from ..data import FINGERPRINT_SIZES
 from ..hyper import HyperTLBundle, pretrain_hyper_tl
 from ..metrics import compute_metrics
-from ..models import random_split, stratified_split, train_and_ensemble
+from ..models import kfold_split, random_split, stratified_split, train_and_ensemble
 from ..report import write_report
 from ..report_vs_unirt import write_unirt_report
 from ..stats import summarize_vs_paper
@@ -74,7 +74,71 @@ def append_candidate_diagnostics_csv(rows: list[dict[str, Any]], out_path: Path)
         return
     out_path.parent.mkdir(parents=True, exist_ok=True)
     df = pd.DataFrame(rows)
-    df.to_csv(out_path, mode="a", header=not out_path.exists(), index=False, encoding="utf-8")
+    if "dataset" in df.columns:
+        df["dataset"] = df["dataset"].astype(str).str.zfill(4)
+    if out_path.exists():
+        try:
+            existing = pd.read_csv(out_path, dtype={"dataset": str}, encoding="utf-8")
+        except Exception:
+            existing = pd.DataFrame()
+        if "dataset" in existing.columns:
+            existing["dataset"] = existing["dataset"].astype(str).str.zfill(4)
+        columns = list(existing.columns)
+        for column in df.columns:
+            if column not in columns:
+                columns.append(column)
+        if not existing.empty:
+            df = pd.concat([existing, df], ignore_index=True, sort=False)
+        df = df.reindex(columns=columns)
+    df.to_csv(out_path, index=False, encoding="utf-8")
+
+
+def _diagnostic_scalar(value: Any) -> Any | None:
+    if isinstance(value, (bool, np.bool_)):
+        return bool(value)
+    if isinstance(value, (int, np.integer)):
+        return int(value)
+    if isinstance(value, (float, np.floating)):
+        numeric = float(value)
+        return numeric if np.isfinite(numeric) else None
+    if isinstance(value, str):
+        return value
+    return None
+
+
+def _candidate_diagnostic_csv_row(
+    *,
+    dataset: str,
+    seed: int,
+    auto_policy_rule: str,
+    row: dict[str, Any],
+) -> dict[str, Any]:
+    diag_row = {
+        "dataset": str(dataset).zfill(4),
+        "seed": int(seed),
+        "auto_policy_rule": str(auto_policy_rule),
+        "candidate_rank": int(row.get("rank", 0)),
+        "candidate_name": str(row.get("name", "")),
+        "val_mae": float(row.get("val_mae", np.nan)),
+        "val_r2": float(row.get("val_r2", np.nan)),
+        "selected": bool(row.get("selected", False)),
+        "weight": float(row.get("weight", 0.0)),
+    }
+    reserved = {
+        "rank",
+        "name",
+        "val_mae",
+        "val_r2",
+        "selected",
+        "weight",
+    }
+    for key, value in row.items():
+        if key in reserved:
+            continue
+        scalar = _diagnostic_scalar(value)
+        if scalar is not None:
+            diag_row[str(key)] = scalar
+    return diag_row
 
 
 def _id_set(raw: Any) -> set[str]:
@@ -523,6 +587,14 @@ def _split_for_mat(mat: Any, seed: int, split_cfg: dict[str, Any]) -> Any:
             train=float(split_cfg["train"]),
             val=float(split_cfg["val"]),
             test=float(split_cfg["test"]),
+        )
+    if split_strategy in ("kfold", "k-fold", "cv", "cross_validation", "cross-validation"):
+        return kfold_split(
+            y=mat.y_sec,
+            seed=seed,
+            n_splits=int(split_cfg.get("folds", split_cfg.get("n_splits", 10))),
+            shuffle_seed=int(split_cfg.get("shuffle_seed", split_cfg.get("seed", 0))),
+            val_fold_offset=int(split_cfg.get("val_fold_offset", 1)),
         )
     return stratified_split(
         y=mat.y_sec,
@@ -1073,23 +1145,7 @@ def run_trial(
                     "job_count": total_jobs,
                 },
             )
-            split_strategy = str(split_cfg.get("strategy", "stratified")).strip().lower()
-            if split_strategy == "random":
-                split = random_split(
-                    y=mat.y_sec,
-                    seed=seed,
-                    train=float(split_cfg["train"]),
-                    val=float(split_cfg["val"]),
-                    test=float(split_cfg["test"]),
-                )
-            else:
-                split = stratified_split(
-                    y=mat.y_sec,
-                    seed=seed,
-                    train=float(split_cfg["train"]),
-                    val=float(split_cfg["val"]),
-                    test=float(split_cfg["test"]),
-                )
+            split = _split_for_mat(mat, int(seed), split_cfg)
             y_t_used, ds_scale = _transform_target_for_mat(mat, ds_target_transform)
             y_src_used = source_y_for_transform(ds_target_transform)
 
@@ -1337,21 +1393,12 @@ def run_trial(
             if write_candidate_diagnostics and out.candidate_diagnostics:
                 diag_rows = []
                 for row in out.candidate_diagnostics:
-                    diag_row = {
-                        "dataset": ds,
-                        "seed": int(seed),
-                        "auto_policy_rule": str(ds_policy_stats.get("selected_rule", "")),
-                        "candidate_rank": int(row.get("rank", 0)),
-                        "candidate_name": str(row.get("name", "")),
-                        "val_mae": float(row.get("val_mae", np.nan)),
-                        "val_r2": float(row.get("val_r2", np.nan)),
-                        "selected": bool(row.get("selected", False)),
-                        "weight": float(row.get("weight", 0.0)),
-                    }
-                    if "test_mae" in row:
-                        diag_row["test_mae"] = float(row.get("test_mae", np.nan))
-                    if "test_r2" in row:
-                        diag_row["test_r2"] = float(row.get("test_r2", np.nan))
+                    diag_row = _candidate_diagnostic_csv_row(
+                        dataset=ds,
+                        seed=int(seed),
+                        auto_policy_rule=str(ds_policy_stats.get("selected_rule", "")),
+                        row=row,
+                    )
                     diag_rows.append(diag_row)
                 append_candidate_diagnostics_csv(diag_rows, candidate_diagnostics_csv)
             if write_predictions:

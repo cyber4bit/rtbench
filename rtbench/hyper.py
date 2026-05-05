@@ -226,6 +226,29 @@ def _standardize(X: np.ndarray, mean: np.ndarray, std: np.ndarray) -> np.ndarray
     return ((X - mean) / std).astype(np.float32)
 
 
+def _validate_split_indices(train_idx: np.ndarray, val_idx: np.ndarray, n_rows: int) -> tuple[np.ndarray, np.ndarray]:
+    def _as_index_array(name: str, idx: np.ndarray) -> np.ndarray:
+        arr = np.asarray(idx)
+        if arr.ndim != 1:
+            raise ValueError(f"{name} must be a 1D array")
+        if arr.size == 0:
+            raise ValueError(f"{name} must be non-empty")
+        if not np.issubdtype(arr.dtype, np.integer):
+            raise ValueError(f"{name} must contain integer row indices")
+        arr = arr.astype(np.int64, copy=False)
+        if np.any((arr < 0) | (arr >= n_rows)):
+            raise ValueError(f"{name} indices out of bounds for {n_rows} rows")
+        if np.unique(arr).size != arr.size:
+            raise ValueError(f"{name} must not contain duplicate row indices")
+        return arr
+
+    tr_idx = _as_index_array("train_idx", train_idx)
+    va_idx = _as_index_array("val_idx", val_idx)
+    if np.intersect1d(tr_idx, va_idx).size > 0:
+        raise ValueError("train_idx and val_idx must be disjoint")
+    return tr_idx.astype(int, copy=False), va_idx.astype(int, copy=False)
+
+
 def pretrain_hyper_tl(
     X_src_mol: np.ndarray,
     X_src_cp: np.ndarray,
@@ -234,6 +257,8 @@ def pretrain_hyper_tl(
     seed: int = 0,
     sample_weights: np.ndarray | None = None,
     dataset_ids: np.ndarray | None = None,
+    train_idx: np.ndarray | None = None,
+    val_idx: np.ndarray | None = None,
 ) -> HyperTLBundle:
     """Pretrain a CP-conditioned hypernetwork on source datasets once, reuse for all targets."""
     torch.manual_seed(int(seed))
@@ -273,13 +298,16 @@ def pretrain_hyper_tl(
     ridge_lambdas = [float(x) for x in cfg.get("ridge_lambdas", [0.0, 1e-3, 1e-2, 1e-1, 1.0, 10.0])]
     ridge_lambda_b = float(cfg.get("ridge_lambda_b", 1e-2))
 
+    y = np.asarray(y_src, dtype=np.float32)
+    n = len(y)
+    if X_src_mol.shape[0] != n or X_src_cp.shape[0] != n:
+        raise ValueError(
+            f"source row count mismatch: X_src_mol={X_src_mol.shape[0]}, X_src_cp={X_src_cp.shape[0]}, y_src={n}"
+        )
     mol_mean, mol_std = _compute_mol_mean_std(X_src_mol, mol_sequence_len)
     cp_mean, cp_std = _compute_mean_std(X_src_cp)
     Xm = _standardize(X_src_mol, mol_mean, mol_std)
     Xc = _standardize(X_src_cp, cp_mean, cp_std)
-    y = np.asarray(y_src, dtype=np.float32)
-
-    n = len(y)
     group_index = np.zeros(n, dtype=np.int64)
     if dataset_ids is not None:
         ds_for_groups = np.asarray(dataset_ids, dtype=object).reshape(-1)
@@ -308,36 +336,41 @@ def pretrain_hyper_tl(
         if float(np.sum(sw)) > 0.0:
             # Keep weight scale comparable to unweighted training (mean ~ 1.0).
             w = (sw / max(float(np.mean(sw)), 1e-12)).astype(np.float32)
+    if (train_idx is None) != (val_idx is None):
+        raise ValueError("train_idx and val_idx must be supplied together")
     rng = np.random.default_rng(int(seed))
-    if dataset_ids is not None and val_split in ("dataset", "dataset_holdout", "dataset-level"):
-        ds_arr = np.asarray(dataset_ids, dtype=object).reshape(-1)
-        if len(ds_arr) != n:
-            raise ValueError(f"dataset_ids length mismatch: got={len(ds_arr)}, expected={n}")
-        uniq = sorted(set(str(x) for x in ds_arr.tolist()))
-        if len(uniq) >= 2:
-            ds_perm = np.array(uniq, dtype=object)
-            rng.shuffle(ds_perm)
-            n_val_ds = int(max(1, round(len(ds_perm) * val_frac)))
-            val_ds = set(str(x) for x in ds_perm[:n_val_ds].tolist())
-            mask = np.array([str(x) in val_ds for x in ds_arr.tolist()], dtype=bool)
-            val_idx = np.where(mask)[0]
-            tr_idx = np.where(~mask)[0]
+    if train_idx is not None and val_idx is not None:
+        tr_idx, val_idx = _validate_split_indices(train_idx, val_idx, n)
+    else:
+        if dataset_ids is not None and val_split in ("dataset", "dataset_holdout", "dataset-level"):
+            ds_arr = np.asarray(dataset_ids, dtype=object).reshape(-1)
+            if len(ds_arr) != n:
+                raise ValueError(f"dataset_ids length mismatch: got={len(ds_arr)}, expected={n}")
+            uniq = sorted(set(str(x) for x in ds_arr.tolist()))
+            if len(uniq) >= 2:
+                ds_perm = np.array(uniq, dtype=object)
+                rng.shuffle(ds_perm)
+                n_val_ds = int(max(1, round(len(ds_perm) * val_frac)))
+                val_ds = set(str(x) for x in ds_perm[:n_val_ds].tolist())
+                mask = np.array([str(x) in val_ds for x in ds_arr.tolist()], dtype=bool)
+                val_idx = np.where(mask)[0]
+                tr_idx = np.where(~mask)[0]
+            else:
+                val_idx = np.array([], dtype=int)
+                tr_idx = np.array([], dtype=int)
+            # Safety: fall back to sample split if the dataset split is degenerate.
+            if val_idx.size == 0 or tr_idx.size == 0:
+                idx = np.arange(n)
+                rng.shuffle(idx)
+                n_val = int(max(1, round(n * val_frac)))
+                val_idx = idx[:n_val]
+                tr_idx = idx[n_val:]
         else:
-            val_idx = np.array([], dtype=int)
-            tr_idx = np.array([], dtype=int)
-        # Safety: fall back to sample split if the dataset split is degenerate.
-        if val_idx.size == 0 or tr_idx.size == 0:
             idx = np.arange(n)
             rng.shuffle(idx)
             n_val = int(max(1, round(n * val_frac)))
             val_idx = idx[:n_val]
             tr_idx = idx[n_val:]
-    else:
-        idx = np.arange(n)
-        rng.shuffle(idx)
-        n_val = int(max(1, round(n * val_frac)))
-        val_idx = idx[:n_val]
-        tr_idx = idx[n_val:]
 
     tr = TensorDataset(
         torch.from_numpy(Xm[tr_idx]),

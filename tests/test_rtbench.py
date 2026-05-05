@@ -7,7 +7,7 @@ import pandas as pd
 
 from rtbench.data import build_all_matrices, pretrain_count_14, validate_required_inputs
 from rtbench.metrics import compute_metrics
-from rtbench.models import random_split, stratified_split
+from rtbench.models import kfold_split, random_split, stratified_split
 
 
 PRETRAIN_FIXTURE = ["0019", "0052"]
@@ -176,6 +176,21 @@ def test_random_split_reproducibility() -> None:
     assert len(set(s1.train_idx).intersection(set(s1.val_idx))) == 0
     assert len(set(s1.train_idx).intersection(set(s1.test_idx))) == 0
     assert len(set(s1.val_idx).intersection(set(s1.test_idx))) == 0
+
+
+def test_kfold_split_covers_each_sample_once() -> None:
+    y = np.linspace(1.0, 100.0, 103)
+    seen: list[int] = []
+    for fold in range(10):
+        split = kfold_split(y, seed=fold, n_splits=10, shuffle_seed=123)
+        train_set = set(split.train_idx.tolist())
+        val_set = set(split.val_idx.tolist())
+        test_set = set(split.test_idx.tolist())
+        assert len(train_set.intersection(val_set)) == 0
+        assert len(train_set.intersection(test_set)) == 0
+        assert len(val_set.intersection(test_set)) == 0
+        seen.extend(split.test_idx.tolist())
+    assert sorted(seen) == list(range(len(y)))
 
 
 def test_smoke_artifacts(tmp_path: Path) -> None:

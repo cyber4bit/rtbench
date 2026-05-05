@@ -256,7 +256,157 @@ def build_hyper_candidates(ctx: CandidateBuildContext) -> list[CandidateOutput]:
                 base_test_pred=base_test,
             )
             candidates.extend(quantile_candidates)
+    if bool(ctx.model_cfg.get("ENABLE_CANDIDATE_SIMILARITY_DIAGNOSTICS", False)) and bundles:
+        _attach_candidate_similarity_diagnostics(ctx, candidates, bundles[0])
     return candidates
+
+
+def _attach_candidate_similarity_diagnostics(
+    ctx: CandidateBuildContext,
+    candidates: list[CandidateOutput],
+    bundle: Any,
+) -> None:
+    diagnostics = _candidate_similarity_diagnostics(ctx, bundle)
+    if not diagnostics:
+        return
+    for candidate in candidates:
+        if isinstance(candidate.model, dict):
+            candidate.model = {**candidate.model, "similarity_diagnostics": diagnostics}
+
+
+def _candidate_similarity_diagnostics(ctx: CandidateBuildContext, bundle: Any) -> dict[str, Any]:
+    max_ref_rows = int(ctx.model_cfg.get("CANDIDATE_SIMILARITY_DIAGNOSTICS_MAX_REF_ROWS", 2000) or 2000)
+    cp_ref = _target_cp_ref(ctx, bundle)
+    spaces: dict[str, tuple[np.ndarray, dict[str, np.ndarray | None]]] = {
+        "descriptor": (
+            np.asarray(ctx.X_test_mol, dtype=np.float32),
+            {
+                "train": np.asarray(ctx.X_train_mol, dtype=np.float32),
+                "val": np.asarray(ctx.X_val_mol, dtype=np.float32),
+                "source": np.asarray(ctx.X_src_mol, dtype=np.float32),
+            },
+        ),
+        "cp": (
+            np.asarray(
+                ctx.X_test_cp if ctx.X_test_cp is not None else np.empty((len(ctx.X_test_mol), 0)),
+                dtype=np.float32,
+            ),
+            {
+                "train": np.asarray(ctx.X_train_cp, dtype=np.float32),
+                "val": np.asarray(ctx.X_val_cp if ctx.X_val_cp is not None else np.empty((0, 0)), dtype=np.float32),
+                "source": np.asarray(ctx.X_src_cp, dtype=np.float32),
+            },
+        ),
+        "embedding": (
+            _target_embeddings(bundle, ctx.X_test_mol, cp_ref, ctx.target_dataset_id),
+            {
+                "train": _target_embeddings(bundle, ctx.X_train_mol, cp_ref, ctx.target_dataset_id),
+                "val": _target_embeddings(bundle, ctx.X_val_mol, cp_ref, ctx.target_dataset_id),
+                "source": _target_embeddings(bundle, ctx.X_src_mol, cp_ref, None),
+            },
+        ),
+    }
+    out: dict[str, Any] = {"n_test": int(len(ctx.X_test_mol)), "spaces": {}}
+    for space_name, (test_x, refs) in spaces.items():
+        space_diag: dict[str, Any] = {}
+        for ref_name, ref_x in refs.items():
+            summary = _distance_percentile_summary(test_x, ref_x, max_ref_rows=max_ref_rows)
+            if summary:
+                space_diag[f"test_vs_{ref_name}"] = summary
+        if space_diag:
+            out["spaces"][space_name] = space_diag
+    return out if out["spaces"] else {}
+
+
+def _distance_percentile_summary(
+    eval_x: np.ndarray,
+    ref_x: np.ndarray | None,
+    *,
+    max_ref_rows: int = 2000,
+) -> dict[str, float] | None:
+    eval_arr = _as_2d_float(eval_x)
+    ref_arr = _as_2d_float(ref_x)
+    if eval_arr is None or ref_arr is None or len(eval_arr) == 0 or len(ref_arr) == 0:
+        return None
+    if eval_arr.shape[1] != ref_arr.shape[1]:
+        return None
+    ref_arr = _limit_similarity_reference(ref_arr, max_ref_rows)
+    eval_scaled, ref_scaled = _standardize_eval_and_ref(eval_arr, ref_arr)
+    eval_nn = _nearest_distances(eval_scaled, ref_scaled)
+    ref_baseline = _reference_nearest_distances(ref_scaled)
+    if len(eval_nn) == 0 or len(ref_baseline) == 0:
+        return None
+    pct = np.searchsorted(np.sort(ref_baseline), eval_nn, side="right").astype(np.float32) / float(len(ref_baseline))
+    return {
+        "n_ref": float(len(ref_scaled)),
+        "test_nn_distance_median": _finite_stat(eval_nn, "median"),
+        "test_nn_distance_p90": _finite_quantile(eval_nn, 0.9),
+        "test_nn_distance_max": _finite_stat(eval_nn, "max"),
+        "test_distance_percentile_median": _finite_stat(pct, "median"),
+        "test_distance_percentile_p90": _finite_quantile(pct, 0.9),
+        "test_distance_percentile_max": _finite_stat(pct, "max"),
+    }
+
+
+def _as_2d_float(values: np.ndarray | None) -> np.ndarray | None:
+    if values is None:
+        return None
+    arr = np.asarray(values, dtype=np.float32)
+    if arr.ndim != 2:
+        return None
+    return arr
+
+
+def _limit_similarity_reference(ref_x: np.ndarray, max_ref_rows: int) -> np.ndarray:
+    if max_ref_rows <= 0 or len(ref_x) <= max_ref_rows:
+        return ref_x
+    idx = np.linspace(0, len(ref_x) - 1, num=max_ref_rows, dtype=np.int64)
+    return ref_x[idx]
+
+
+def _standardize_eval_and_ref(eval_x: np.ndarray, ref_x: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    mean = np.mean(ref_x, axis=0, keepdims=True)
+    std = np.std(ref_x, axis=0, keepdims=True)
+    std = np.where(std < 1e-6, 1.0, std).astype(np.float32)
+    return ((eval_x - mean) / std).astype(np.float32), ((ref_x - mean) / std).astype(np.float32)
+
+
+def _nearest_distances(eval_x: np.ndarray, ref_x: np.ndarray, *, chunk_size: int = 512) -> np.ndarray:
+    if len(eval_x) == 0 or len(ref_x) == 0:
+        return np.array([], dtype=np.float32)
+    out = np.empty(len(eval_x), dtype=np.float32)
+    ref_sq = np.sum(np.square(ref_x, dtype=np.float32), axis=1, keepdims=True).T
+    for start in range(0, len(eval_x), chunk_size):
+        chunk = eval_x[start : start + chunk_size]
+        dist_sq = np.sum(np.square(chunk, dtype=np.float32), axis=1, keepdims=True) + ref_sq - 2.0 * (
+            chunk @ ref_x.T
+        )
+        out[start : start + len(chunk)] = np.sqrt(np.maximum(np.min(dist_sq, axis=1), 0.0))
+    return out
+
+
+def _reference_nearest_distances(ref_x: np.ndarray, *, chunk_size: int = 512) -> np.ndarray:
+    if len(ref_x) <= 1:
+        return np.zeros(len(ref_x), dtype=np.float32)
+    out = np.empty(len(ref_x), dtype=np.float32)
+    ref_sq = np.sum(np.square(ref_x, dtype=np.float32), axis=1, keepdims=True).T
+    for start in range(0, len(ref_x), chunk_size):
+        chunk = ref_x[start : start + chunk_size]
+        dist_sq = np.sum(np.square(chunk, dtype=np.float32), axis=1, keepdims=True) + ref_sq - 2.0 * (
+            chunk @ ref_x.T
+        )
+        row_idx = np.arange(len(chunk))
+        dist_sq[row_idx, start + row_idx] = np.inf
+        out[start : start + len(chunk)] = np.sqrt(np.maximum(np.min(dist_sq, axis=1), 0.0))
+    return out
+
+
+def _finite_quantile(values: np.ndarray, q: float) -> float:
+    arr = np.asarray(values, dtype=np.float64)
+    arr = arr[np.isfinite(arr)]
+    if len(arr) == 0:
+        return float("nan")
+    return float(np.quantile(arr, float(q)))
 
 
 def _split_target_tokens(ctx: CandidateBuildContext) -> tuple[list[tuple[str, ...]], list[tuple[str, ...]], list[tuple[str, ...]]]:
@@ -896,48 +1046,169 @@ def _build_hyper_prior_calibration_candidates(ctx: CandidateBuildContext, bundle
     for mode in modes:
         val_preds: list[np.ndarray] = []
         test_preds: list[np.ndarray] = []
+        val_diags: list[dict[str, float | str]] = []
+        test_diags: list[dict[str, float | str]] = []
         for prior_tr, prior_va, prior_te in zip(train_priors, val_priors, test_priors):
-            val_pred = _calibrate_prior(
+            val_fit = _calibrate_prior_with_diagnostics(
                 mode=mode,
                 fit_pred=prior_tr,
                 fit_y=ctx.y_train_sec,
                 eval_pred=prior_va,
             )
-            if val_pred is None:
+            if val_fit is None:
                 continue
-            test_pred = _calibrate_prior(
+            val_pred, val_diag = val_fit
+            test_fit = _calibrate_prior_with_diagnostics(
                 mode=mode,
                 fit_pred=np.concatenate([prior_tr, prior_va], axis=0),
                 fit_y=np.concatenate([ctx.y_train_sec, ctx.y_val_sec], axis=0),
                 eval_pred=prior_te,
             )
-            if test_pred is None:
+            if test_fit is None:
                 continue
+            test_pred, test_diag = test_fit
             val_preds.append(val_pred)
             test_preds.append(test_pred)
+            val_diags.append(val_diag)
+            test_diags.append(test_diag)
         if not val_preds:
             continue
         val_out = np.median(np.stack(val_preds, axis=0), axis=0).astype(np.float32)
         test_out = np.median(np.stack(test_preds, axis=0), axis=0).astype(np.float32)
+        prior_calibration = _summarize_prior_calibration_diagnostics(
+            mode=mode,
+            val_diags=val_diags,
+            test_diags=test_diags,
+        )
         candidates.append(
             CandidateOutput(
                 name=f"HYPER_PRIOR_CAL_{mode.upper()}(n={len(val_preds)})",
                 val_pred=val_out,
                 test_pred=test_out,
                 val_metrics=compute_metrics(ctx.y_val_sec, val_out),
-                model={"type": "hyper_prior_calibration", "mode": mode, "n": len(val_preds)},
+                model={
+                    "type": "hyper_prior_calibration",
+                    "mode": mode,
+                    "n": len(val_preds),
+                    "prior_calibration": prior_calibration,
+                },
             )
         )
     return candidates
 
 
-def _calibrate_prior(
+def _finite_stat(values: np.ndarray, reducer: str) -> float:
+    arr = np.asarray(values, dtype=np.float64).reshape(-1)
+    finite = arr[np.isfinite(arr)]
+    if finite.size == 0:
+        return float("nan")
+    if reducer == "min":
+        return float(np.min(finite))
+    if reducer == "max":
+        return float(np.max(finite))
+    if reducer == "median":
+        return float(np.median(finite))
+    return float(np.mean(finite))
+
+
+def _prior_calibration_base_diagnostics(
     *,
     mode: str,
     fit_pred: np.ndarray,
     fit_y: np.ndarray,
     eval_pred: np.ndarray,
-) -> np.ndarray | None:
+) -> dict[str, float | str]:
+    x = np.asarray(fit_pred, dtype=np.float64).reshape(-1)
+    y = np.asarray(fit_y, dtype=np.float64).reshape(-1)
+    z = np.asarray(eval_pred, dtype=np.float64).reshape(-1)
+    keep = np.isfinite(x) & np.isfinite(y)
+    x_fit = x[keep]
+    y_fit = y[keep]
+    fit_min = _finite_stat(x_fit, "min")
+    fit_max = _finite_stat(x_fit, "max")
+    eval_min = _finite_stat(z, "min")
+    eval_max = _finite_stat(z, "max")
+    fit_range = fit_max - fit_min if np.isfinite(fit_min) and np.isfinite(fit_max) else float("nan")
+    eval_range = eval_max - eval_min if np.isfinite(eval_min) and np.isfinite(eval_max) else float("nan")
+    lower = np.isfinite(z) & np.isfinite(fit_min) & (z < fit_min)
+    upper = np.isfinite(z) & np.isfinite(fit_max) & (z > fit_max)
+    extrap = lower | upper
+    denom = float(max(int(np.sum(np.isfinite(z))), 1))
+    lower_amount = float(max(0.0, fit_min - eval_min)) if np.isfinite(fit_min) and np.isfinite(eval_min) else float("nan")
+    upper_amount = float(max(0.0, eval_max - fit_max)) if np.isfinite(fit_max) and np.isfinite(eval_max) else float("nan")
+    max_extrap = max(
+        lower_amount if np.isfinite(lower_amount) else 0.0,
+        upper_amount if np.isfinite(upper_amount) else 0.0,
+    )
+    safe_fit_range = max(float(fit_range), 1e-8) if np.isfinite(fit_range) else float("nan")
+    return {
+        "mode": str(mode).strip().lower(),
+        "fit_n": float(int(np.sum(keep))),
+        "fit_pred_min": fit_min,
+        "fit_pred_max": fit_max,
+        "fit_pred_range": float(fit_range),
+        "fit_y_min": _finite_stat(y_fit, "min"),
+        "fit_y_max": _finite_stat(y_fit, "max"),
+        "fit_y_range": float(_finite_stat(y_fit, "max") - _finite_stat(y_fit, "min")),
+        "eval_pred_min": eval_min,
+        "eval_pred_max": eval_max,
+        "eval_pred_range": float(eval_range),
+        "eval_to_fit_range_ratio": float(eval_range / safe_fit_range) if np.isfinite(eval_range) and np.isfinite(safe_fit_range) else float("nan"),
+        "eval_extrapolation_lower_frac": float(np.sum(lower) / denom),
+        "eval_extrapolation_upper_frac": float(np.sum(upper) / denom),
+        "eval_extrapolation_frac": float(np.sum(extrap) / denom),
+        "eval_extrapolation_amount": float(max_extrap),
+        "eval_extrapolation_ratio": float(max_extrap / safe_fit_range) if np.isfinite(safe_fit_range) else float("nan"),
+    }
+
+
+def _aggregate_prior_calibration_diagnostics(diags: list[dict[str, float | str]]) -> dict[str, float]:
+    if not diags:
+        return {}
+    keys = sorted({key for diag in diags for key, value in diag.items() if isinstance(value, (int, float))})
+    out: dict[str, float] = {}
+    for key in keys:
+        values = np.asarray([float(diag[key]) for diag in diags if key in diag], dtype=np.float64)
+        finite = values[np.isfinite(values)]
+        if finite.size == 0:
+            continue
+        out[f"{key}_min"] = float(np.min(finite))
+        out[f"{key}_max"] = float(np.max(finite))
+        out[f"{key}_mean"] = float(np.mean(finite))
+        out[f"{key}_median"] = float(np.median(finite))
+    slopes = np.asarray([float(diag["slope"]) for diag in diags if "slope" in diag], dtype=np.float64)
+    slopes = slopes[np.isfinite(slopes)]
+    if slopes.size:
+        out["slope_abs_max"] = float(np.max(np.abs(slopes)))
+        out["slope_abs_median"] = float(np.median(np.abs(slopes)))
+    return out
+
+
+def _summarize_prior_calibration_diagnostics(
+    *,
+    mode: str,
+    val_diags: list[dict[str, float | str]],
+    test_diags: list[dict[str, float | str]],
+) -> dict[str, Any]:
+    return {
+        "mode": str(mode).strip().lower(),
+        "n": int(len(test_diags)),
+        "val": _aggregate_prior_calibration_diagnostics(val_diags),
+        "test": _aggregate_prior_calibration_diagnostics(test_diags),
+        "bundles": {
+            "val": val_diags,
+            "test": test_diags,
+        },
+    }
+
+
+def _calibrate_prior_with_diagnostics(
+    *,
+    mode: str,
+    fit_pred: np.ndarray,
+    fit_y: np.ndarray,
+    eval_pred: np.ndarray,
+) -> tuple[np.ndarray, dict[str, float | str]] | None:
     x = np.asarray(fit_pred, dtype=np.float64).reshape(-1)
     y = np.asarray(fit_y, dtype=np.float64).reshape(-1)
     z = np.asarray(eval_pred, dtype=np.float64).reshape(-1)
@@ -947,19 +1218,52 @@ def _calibrate_prior(
     x = x[keep]
     y = y[keep]
     mode = str(mode).strip().lower()
+    diagnostics = _prior_calibration_base_diagnostics(
+        mode=mode,
+        fit_pred=x,
+        fit_y=y,
+        eval_pred=z,
+    )
     if mode in ("linear", "affine"):
         a, b = calibrate_linear(y, x)
-        return apply_calibration(a, b, z)
+        diagnostics.update({"slope": float(a), "intercept": float(b)})
+        return apply_calibration(a, b, z), diagnostics
     if mode in ("isotonic", "iso"):
         if len(np.unique(x)) < 2:
             return None
         model = IsotonicRegression(out_of_bounds="clip")
         try:
             model.fit(x, y)
-            return np.asarray(model.predict(z), dtype=np.float32)
+            pred = np.asarray(model.predict(z), dtype=np.float32)
+            thresholds_x = np.asarray(getattr(model, "X_thresholds_", []), dtype=np.float64)
+            thresholds_y = np.asarray(getattr(model, "y_thresholds_", []), dtype=np.float64)
+            if len(thresholds_x) >= 2:
+                dx = float(thresholds_x[-1] - thresholds_x[0])
+                dy = float(thresholds_y[-1] - thresholds_y[0]) if len(thresholds_y) >= 2 else float("nan")
+                diagnostics["slope"] = float(dy / max(abs(dx), 1e-8)) if np.isfinite(dy) else float("nan")
+            diagnostics["threshold_count"] = float(len(thresholds_x))
+            diagnostics["output_min"] = _finite_stat(pred, "min")
+            diagnostics["output_max"] = _finite_stat(pred, "max")
+            return pred, diagnostics
         except Exception:
             return None
     return None
+
+
+def _calibrate_prior(
+    *,
+    mode: str,
+    fit_pred: np.ndarray,
+    fit_y: np.ndarray,
+    eval_pred: np.ndarray,
+) -> np.ndarray | None:
+    fit = _calibrate_prior_with_diagnostics(
+        mode=mode,
+        fit_pred=fit_pred,
+        fit_y=fit_y,
+        eval_pred=eval_pred,
+    )
+    return None if fit is None else fit[0]
 
 
 def _weighted_calibrate_prior(

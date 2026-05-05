@@ -92,4 +92,42 @@ def test_unirt_report_includes_assessment_diagnostics_and_figures(tmp_path: Path
     assert "low source overlap" in text
     assert "## Visualizations" in text
     assert "predicted_vs_true_rt.png" in text
+    assert "uses nModel=2" in text
 
+
+def test_unirt_report_uses_matching_fairness_note_for_single_unified_model(tmp_path: Path) -> None:
+    per_seed = pd.DataFrame(
+        [
+            {"dataset": "0001", "seed": seed, "mae": 10.0, "medae": 5.0, "mre": 0.1, "r2": 0.9}
+            for seed in range(10)
+        ]
+    )
+    baseline = tmp_path / "baseline.csv"
+    pd.DataFrame(
+        [
+            {
+                "mode": "RPLC",
+                "dataset": "0001",
+                "method": "Uni-RT",
+                "n_model": 1,
+                "mae": 12.0,
+                "medae": 6.0,
+                "mre": 0.12,
+                "r2": 0.88,
+            }
+        ]
+    ).to_csv(baseline, index=False, encoding="utf-8")
+
+    out = tmp_path / "report_vs_unirt.md"
+    write_unirt_report(
+        out_path=out,
+        per_seed=per_seed,
+        baseline_csv=baseline,
+        mode="RPLC",
+        n_model=1,
+        expected_seeds=list(range(10)),
+    )
+
+    text = out.read_text(encoding="utf-8")
+    assert "reports nModel=1" in text
+    assert "uses nModel=14" not in text

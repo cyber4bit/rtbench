@@ -200,6 +200,46 @@ def test_runner_helper_functions_cover_edge_cases(tmp_path: Path) -> None:
     assert written["seed"].tolist() == [0, 1]
     assert written["top_models"].tolist() == ["A", "NEW"]
 
+    diag_row = runner._candidate_diagnostic_csv_row(
+        dataset="2",
+        seed=5,
+        auto_policy_rule="",
+        row={
+            "rank": 1,
+            "name": "HYPER",
+            "val_mae": 2.0,
+            "val_r2": 0.8,
+            "selected": True,
+            "weight": 0.75,
+            "prior_cal_test_slope_abs_max": 3.5,
+            "sim_descriptor_test_vs_train_test_distance_percentile_max": 0.99,
+            "nested": {"ignored": True},
+            "nan_value": float("nan"),
+        },
+    )
+    assert diag_row["dataset"] == "0002"
+    assert diag_row["candidate_name"] == "HYPER"
+    assert diag_row["prior_cal_test_slope_abs_max"] == 3.5
+    assert diag_row["sim_descriptor_test_vs_train_test_distance_percentile_max"] == 0.99
+    assert "nested" not in diag_row
+    assert "nan_value" not in diag_row
+
+    candidate_diag_path = tmp_path / "metrics" / "candidate_diagnostics.csv"
+    runner.append_candidate_diagnostics_csv(
+        [{"dataset": "0002", "candidate_name": "A", "val_mae": 1.0}],
+        candidate_diag_path,
+    )
+    runner.append_candidate_diagnostics_csv(
+        [{"dataset": "0002", "candidate_name": "B", "prior_cal_mode": "linear", "sim_n_test": 2}],
+        candidate_diag_path,
+    )
+    candidate_diag = pd.read_csv(candidate_diag_path, dtype={"dataset": str}, encoding="utf-8")
+    assert candidate_diag["candidate_name"].tolist() == ["A", "B"]
+    assert candidate_diag["dataset"].tolist() == ["0002", "0002"]
+    assert candidate_diag.loc[1, "prior_cal_mode"] == "linear"
+    assert candidate_diag.loc[1, "sim_n_test"] == 2
+    assert "0002" in candidate_diag_path.read_text(encoding="utf-8")
+
 
 def test_run_trial_normal_flow_writes_outputs(tmp_path: Path) -> None:
     cfg = _make_cfg(tmp_path, resume=False)

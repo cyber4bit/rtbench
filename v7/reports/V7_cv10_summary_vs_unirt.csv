@@ -1,0 +1,3 @@
+sheet,mode,ours_mae,unirt_mae,ours_r2,unirt_r2,ours_medae,unirt_medae,ours_mre,unirt_mre,mae_wins,r2_wins,both_wins,n_datasets,beats_unirt_overall,mae_loss_datasets,r2_loss_datasets
+S4,RPLC,13.59,25.55,0.9654,0.91,7.72,14.31,0.0671,0.12,11,8,8,14,True,"0180, 0234, 0261","0179, 0180, 0234, 0260, 0261, 0264"
+S5,HILIC,36.04,48.09,0.7332,0.83,22.1,27.61,0.1595,0.19,10,7,7,14,False,"0027, 0183, 0184, 0185","0027, 0183, 0184, 0185, 0283, 0372, 0374"

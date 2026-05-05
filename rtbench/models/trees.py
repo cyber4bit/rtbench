@@ -95,6 +95,27 @@ def random_split(y: np.ndarray, seed: int, train: float, val: float, test: float
     return SplitData(train_idx=np.array(train_idx), val_idx=np.array(val_idx), test_idx=np.array(test_idx))
 
 
+def kfold_split(y: np.ndarray, seed: int, n_splits: int = 10, shuffle_seed: int = 0, val_fold_offset: int = 1) -> SplitData:
+    y = np.asarray(y)
+    n = int(len(y))
+    k = int(n_splits)
+    if k < 3:
+        raise ValueError("kfold_split requires at least 3 folds")
+    if n < k:
+        raise ValueError("kfold_split requires n_samples >= n_splits")
+    idx = np.arange(n)
+    rng = np.random.RandomState(int(shuffle_seed))
+    rng.shuffle(idx)
+    folds = [np.asarray(part, dtype=int) for part in np.array_split(idx, k)]
+    test_fold = int(seed) % k
+    val_fold = (test_fold + int(val_fold_offset)) % k
+    if val_fold == test_fold:
+        val_fold = (test_fold + 1) % k
+    train_parts = [fold for fold_idx, fold in enumerate(folds) if fold_idx not in (test_fold, val_fold)]
+    train_idx = np.concatenate(train_parts, axis=0) if train_parts else np.array([], dtype=int)
+    return SplitData(train_idx=train_idx, val_idx=folds[val_fold], test_idx=folds[test_fold])
+
+
 def _normalize_target_transform(name: str) -> str:
     n = str(name or "none").strip().lower()
     if n in ("", "none", "identity"):

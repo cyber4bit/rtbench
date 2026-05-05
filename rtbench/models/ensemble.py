@@ -205,8 +205,10 @@ def _parse_fusion_target_quantile_rules(raw: Any) -> list[dict[str, Any]]:
                 continue
             rules.append(
                 {
+                    "pattern_text": pattern_text,
                     "pattern": re.compile(pattern_text, flags=re.IGNORECASE),
                     "quantile": float(np.clip(quantile, 0.0, 1.0)),
+                    "blend": item.get("blend", None),
                     "target_requires": _required_patterns(
                         item.get("target_requires", item.get("requires", item.get("target_require", [])))
                     ),
@@ -228,8 +230,10 @@ def _parse_fusion_target_quantile_rules(raw: Any) -> list[dict[str, Any]]:
             continue
         rules.append(
             {
+                "pattern_text": pattern_text,
                 "pattern": re.compile(pattern_text, flags=re.IGNORECASE),
                 "quantile": float(np.clip(quantile, 0.0, 1.0)),
+                "blend": None,
                 "target_requires": [],
                 "min_ref_iqr": None,
                 "max_ref_iqr": None,
@@ -245,6 +249,9 @@ def _apply_fusion_target_quantile_rules(
     all_target_tokens: list[tuple[str, ...]],
     rules: list[dict[str, Any]],
     blend: float,
+    diagnostics: list[dict[str, Any]] | None = None,
+    max_abs_shift: float = 0.0,
+    max_shift_ref_iqr_mult: float = 0.0,
 ) -> np.ndarray:
     out = np.asarray(pred, dtype=np.float32).copy()
     if not rules or len(row_tokens) != len(out):
@@ -254,6 +261,12 @@ def _apply_fusion_target_quantile_rules(
     if finite_ref.size == 0:
         return out
     ref_iqr = float(np.nanquantile(finite_ref, 0.75) - np.nanquantile(finite_ref, 0.25))
+    shift_caps: list[float] = []
+    if float(max_abs_shift) > 0.0:
+        shift_caps.append(float(max_abs_shift))
+    if float(max_shift_ref_iqr_mult) > 0.0 and np.isfinite(ref_iqr) and ref_iqr > 0.0:
+        shift_caps.append(float(max_shift_ref_iqr_mult) * ref_iqr)
+    shift_cap = min(shift_caps) if shift_caps else 0.0
     target_ok_cache: dict[int, bool] = {}
     quantile_cache: dict[float, float] = {}
     w = float(np.clip(blend, 0.0, 1.0))
@@ -280,13 +293,121 @@ def _apply_fusion_target_quantile_rules(
             q = float(rule["quantile"])
             if q not in quantile_cache:
                 quantile_cache[q] = float(np.nanquantile(finite_ref, q))
-            out[row_idx] = ((1.0 - w) * out[row_idx] + w * quantile_cache[q]).astype(np.float32)
+            rule_blend = rule.get("blend", None)
+            try:
+                row_w = float(np.clip(w if rule_blend is None else float(rule_blend), 0.0, 1.0))
+            except (TypeError, ValueError):
+                row_w = w
+            old_value = float(out[row_idx])
+            uncapped_value = float(((1.0 - row_w) * old_value + row_w * quantile_cache[q]))
+            new_value = uncapped_value
+            capped = False
+            if shift_cap > 0.0:
+                shift = float(np.clip(uncapped_value - old_value, -shift_cap, shift_cap))
+                new_value = old_value + shift
+                capped = bool(abs(new_value - uncapped_value) > 1e-6)
+            out[row_idx] = np.float32(new_value)
+            if diagnostics is not None:
+                diagnostics.append(
+                    {
+                        "pattern": str(rule.get("pattern_text", "")),
+                        "quantile": q,
+                        "blend": row_w,
+                        "row_idx": int(row_idx),
+                        "old": old_value,
+                        "new": new_value,
+                        "uncapped_new": uncapped_value,
+                        "shift": new_value - old_value,
+                        "abs_shift": abs(new_value - old_value),
+                        "shift_cap": shift_cap,
+                        "capped": capped,
+                    }
+                )
             break
     return out
 
 
-def _sort_key(candidate: Any, rank_mode: str, priority_patterns: list[re.Pattern[str]] | None = None) -> tuple[float, float, float]:
-    priority = _priority_rank(str(candidate.name), priority_patterns or [])
+def _summarize_quantile_rule_events(prefix: str, events: list[dict[str, Any]]) -> dict[str, Any]:
+    key_prefix = f"fusion_quantile_{_safe_diagnostic_key(prefix)}"
+    if not events:
+        return {
+            f"{key_prefix}_adjusted_count": 0,
+            f"{key_prefix}_rule_count": 0,
+            f"{key_prefix}_mean_abs_shift": 0.0,
+            f"{key_prefix}_max_abs_shift": 0.0,
+            f"{key_prefix}_capped_count": 0,
+            f"{key_prefix}_rules": "",
+        }
+    grouped: dict[tuple[str, float, float], dict[str, float | int | str]] = {}
+    abs_shifts: list[float] = []
+    capped_count = 0
+    for event in events:
+        pattern = str(event.get("pattern", ""))
+        quantile = float(event.get("quantile", 0.0))
+        blend = float(event.get("blend", 0.0))
+        key = (pattern, quantile, blend)
+        cur = grouped.setdefault(
+            key,
+            {"pattern": pattern, "quantile": quantile, "blend": blend, "count": 0, "sum_abs": 0.0, "max_abs": 0.0},
+        )
+        shift = float(event.get("abs_shift", 0.0))
+        cur["count"] = int(cur["count"]) + 1
+        cur["sum_abs"] = float(cur["sum_abs"]) + shift
+        cur["max_abs"] = max(float(cur["max_abs"]), shift)
+        abs_shifts.append(shift)
+        if bool(event.get("capped", False)):
+            capped_count += 1
+    parts = []
+    for item in sorted(grouped.values(), key=lambda value: (-int(value["count"]), str(value["pattern"]))):
+        count = int(item["count"])
+        mean_abs = float(item["sum_abs"]) / max(count, 1)
+        parts.append(
+            f"{item['pattern']}@q={float(item['quantile']):.3g},b={float(item['blend']):.3g},n={count},mean_abs={mean_abs:.4g},max_abs={float(item['max_abs']):.4g}"
+        )
+    return {
+        f"{key_prefix}_adjusted_count": int(len(events)),
+        f"{key_prefix}_rule_count": int(len(grouped)),
+        f"{key_prefix}_mean_abs_shift": float(np.mean(abs_shifts)) if abs_shifts else 0.0,
+        f"{key_prefix}_max_abs_shift": float(np.max(abs_shifts)) if abs_shifts else 0.0,
+        f"{key_prefix}_capped_count": int(capped_count),
+        f"{key_prefix}_rules": "; ".join(parts),
+    }
+
+
+def _cfg_threshold(model_cfg: dict[str, Any], key: str) -> float | None:
+    if key not in model_cfg or model_cfg.get(key) is None:
+        return None
+    try:
+        value = float(model_cfg.get(key))
+    except (TypeError, ValueError):
+        return None
+    return value if np.isfinite(value) else None
+
+
+def _priority_rank_for_candidate(
+    candidate: Any,
+    priority_patterns: list[re.Pattern[str]] | None,
+    model_cfg: dict[str, Any],
+) -> int:
+    patterns = priority_patterns or []
+    priority = _priority_rank(str(candidate.name), patterns)
+    if priority >= len(patterns):
+        return priority
+    min_val_r2 = _cfg_threshold(model_cfg, "FUSION_PRIORITY_MIN_VAL_R2")
+    if min_val_r2 is not None:
+        val_r2 = float(candidate.val_metrics.get("r2", float("nan")))
+        if not np.isfinite(val_r2) or val_r2 < min_val_r2:
+            return len(patterns) + 1
+    return priority
+
+
+def _sort_key(
+    candidate: Any,
+    rank_mode: str,
+    priority_patterns: list[re.Pattern[str]] | None = None,
+    model_cfg: dict[str, Any] | None = None,
+) -> tuple[float, float, float]:
+    priority = _priority_rank_for_candidate(candidate, priority_patterns or [], model_cfg or {})
     mae = float(candidate.val_metrics.get("mae", float("inf")))
     if rank_mode == "mae_then_r2":
         return float(priority), mae, -float(candidate.val_metrics.get("r2", float("-inf")))
@@ -321,6 +442,199 @@ def _selection_mask_from_y(y_val_sec: np.ndarray, trim_frac: float) -> np.ndarra
     if int(np.sum(trimmed)) >= max(3, len(y) // 2):
         return trimmed
     return mask
+
+
+def _filter_low_iqr_candidates(candidates: list[Any], model_cfg: dict[str, Any], y_train_sec: np.ndarray) -> list[Any]:
+    max_iqr = float(model_cfg.get("FUSION_LOW_IQR_MAX_REF_IQR", 0.0) or 0.0)
+    deny_patterns = _priority_patterns(model_cfg.get("FUSION_LOW_IQR_DENY_PATTERNS"))
+    if max_iqr <= 0.0 or not deny_patterns:
+        return candidates
+    y = np.asarray(y_train_sec, dtype=np.float64).reshape(-1)
+    finite = y[np.isfinite(y)]
+    if finite.size < 5:
+        return candidates
+    ref_iqr = float(np.nanquantile(finite, 0.75) - np.nanquantile(finite, 0.25))
+    if not np.isfinite(ref_iqr) or ref_iqr > max_iqr:
+        return candidates
+    filtered = [
+        candidate
+        for candidate in candidates
+        if not any(pattern.search(str(candidate.name)) for pattern in deny_patterns)
+    ]
+    return filtered or candidates
+
+
+def _filter_close_linear_prior_calibration_candidates(
+    candidates: list[Any],
+    model_cfg: dict[str, Any],
+    *,
+    target_rows: int | None = None,
+) -> list[Any]:
+    max_delta = float(model_cfg.get("FUSION_PREFER_ISOTONIC_PRIOR_CAL_MAX_MAE_DELTA", 0.0) or 0.0)
+    max_ratio = float(model_cfg.get("FUSION_PREFER_ISOTONIC_PRIOR_CAL_MAX_MAE_RATIO", 0.0) or 0.0)
+    if max_delta <= 0.0 and max_ratio <= 0.0:
+        return candidates
+    min_target_rows = int(model_cfg.get("FUSION_PREFER_ISOTONIC_PRIOR_CAL_MIN_TARGET_ROWS", 0) or 0)
+    if min_target_rows > 0 and target_rows is not None and int(target_rows) < min_target_rows:
+        return candidates
+
+    linear = [
+        candidate
+        for candidate in candidates
+        if str(candidate.name).startswith("HYPER_PRIOR_CAL_LINEAR")
+    ]
+    isotonic = [
+        candidate
+        for candidate in candidates
+        if str(candidate.name).startswith("HYPER_PRIOR_CAL_ISOTONIC")
+    ]
+    if not linear or not isotonic:
+        return candidates
+
+    best_iso_mae = min(float(candidate.val_metrics.get("mae", float("inf"))) for candidate in isotonic)
+    if not np.isfinite(best_iso_mae):
+        return candidates
+
+    remove: set[int] = set()
+    for candidate in linear:
+        linear_mae = float(candidate.val_metrics.get("mae", float("inf")))
+        if not np.isfinite(linear_mae):
+            continue
+        close_by_delta = max_delta > 0.0 and best_iso_mae <= linear_mae + max_delta
+        close_by_ratio = max_ratio > 0.0 and best_iso_mae <= max(linear_mae, 1e-8) * max_ratio
+        if close_by_delta or close_by_ratio:
+            remove.add(id(candidate))
+
+    filtered = [candidate for candidate in candidates if id(candidate) not in remove]
+    return filtered or candidates
+
+
+def _prior_calibration_diagnostics(candidate: Any) -> dict[str, Any]:
+    model = getattr(candidate, "model", None)
+    if not isinstance(model, dict):
+        return {}
+    diagnostics = model.get("prior_calibration", {})
+    if isinstance(diagnostics, dict):
+        return diagnostics
+    nested = model.get("diagnostics", {})
+    if isinstance(nested, dict) and isinstance(nested.get("prior_calibration"), dict):
+        return nested["prior_calibration"]
+    return {}
+
+
+def _safe_diagnostic_key(raw: Any) -> str:
+    text = re.sub(r"[^0-9A-Za-z]+", "_", str(raw).strip().lower()).strip("_")
+    return text or "unknown"
+
+
+def _append_similarity_diagnostics(row: dict[str, Any], candidate: Any) -> None:
+    model = getattr(candidate, "model", None)
+    if not isinstance(model, dict):
+        return
+    diagnostics = model.get("similarity_diagnostics", {})
+    if not isinstance(diagnostics, dict):
+        return
+    try:
+        row["sim_n_test"] = int(diagnostics.get("n_test", 0))
+    except (TypeError, ValueError):
+        pass
+    spaces = diagnostics.get("spaces", {})
+    if not isinstance(spaces, dict):
+        return
+    for space_name, refs in spaces.items():
+        if not isinstance(refs, dict):
+            continue
+        space_key = _safe_diagnostic_key(space_name)
+        for ref_name, summary in refs.items():
+            if not isinstance(summary, dict):
+                continue
+            ref_key = _safe_diagnostic_key(ref_name)
+            for metric_name, value in summary.items():
+                try:
+                    numeric = float(value)
+                except (TypeError, ValueError):
+                    continue
+                if not np.isfinite(numeric):
+                    continue
+                row[f"sim_{space_key}_{ref_key}_{_safe_diagnostic_key(metric_name)}"] = numeric
+
+
+def _diag_float(diag: dict[str, Any], section: str, key: str) -> float:
+    section_diag = diag.get(section, {})
+    if not isinstance(section_diag, dict):
+        return float("nan")
+    try:
+        return float(section_diag.get(key, float("nan")))
+    except (TypeError, ValueError):
+        return float("nan")
+
+
+def _filter_risky_linear_prior_calibration_candidates(
+    candidates: list[Any],
+    model_cfg: dict[str, Any],
+) -> list[Any]:
+    max_abs_slope = _cfg_threshold(model_cfg, "FUSION_PRIOR_CAL_LINEAR_MAX_ABS_SLOPE")
+    min_abs_slope = _cfg_threshold(model_cfg, "FUSION_PRIOR_CAL_LINEAR_MIN_ABS_SLOPE")
+    max_test_extrap_frac = _cfg_threshold(model_cfg, "FUSION_PRIOR_CAL_LINEAR_MAX_TEST_EXTRAP_FRAC")
+    max_test_extrap_ratio = _cfg_threshold(model_cfg, "FUSION_PRIOR_CAL_LINEAR_MAX_TEST_EXTRAP_RATIO")
+    max_test_vs_val_extrap_delta = _cfg_threshold(model_cfg, "FUSION_PRIOR_CAL_LINEAR_MAX_TEST_VS_VAL_EXTRAP_FRAC_DELTA")
+    min_fit_range = _cfg_threshold(model_cfg, "FUSION_PRIOR_CAL_LINEAR_MIN_FIT_RANGE")
+    max_test_range_ratio = _cfg_threshold(model_cfg, "FUSION_PRIOR_CAL_LINEAR_MAX_TEST_RANGE_RATIO")
+    thresholds = [
+        max_abs_slope,
+        min_abs_slope,
+        max_test_extrap_frac,
+        max_test_extrap_ratio,
+        max_test_vs_val_extrap_delta,
+        min_fit_range,
+        max_test_range_ratio,
+    ]
+    if all(value is None for value in thresholds):
+        return candidates
+
+    if bool(model_cfg.get("FUSION_PRIOR_CAL_LINEAR_FILTER_REQUIRE_ISOTONIC", False)):
+        if not any(str(candidate.name).startswith("HYPER_PRIOR_CAL_ISOTONIC") for candidate in candidates):
+            return candidates
+
+    remove: set[int] = set()
+    for candidate in candidates:
+        if not str(candidate.name).startswith("HYPER_PRIOR_CAL_LINEAR"):
+            continue
+        diag = _prior_calibration_diagnostics(candidate)
+        if not diag:
+            continue
+        slope_abs = _diag_float(diag, "test", "slope_abs_max")
+        test_fit_range = _diag_float(diag, "test", "fit_pred_range_min")
+        test_extrap_frac = _diag_float(diag, "test", "eval_extrapolation_frac_max")
+        val_extrap_frac = _diag_float(diag, "val", "eval_extrapolation_frac_max")
+        test_extrap_ratio = _diag_float(diag, "test", "eval_extrapolation_ratio_max")
+        test_range_ratio = _diag_float(diag, "test", "eval_to_fit_range_ratio_max")
+
+        risky = False
+        if max_abs_slope is not None and np.isfinite(slope_abs) and slope_abs > max_abs_slope:
+            risky = True
+        if min_abs_slope is not None and np.isfinite(slope_abs) and slope_abs < min_abs_slope:
+            risky = True
+        if max_test_extrap_frac is not None and np.isfinite(test_extrap_frac) and test_extrap_frac > max_test_extrap_frac:
+            risky = True
+        if max_test_extrap_ratio is not None and np.isfinite(test_extrap_ratio) and test_extrap_ratio > max_test_extrap_ratio:
+            risky = True
+        if (
+            max_test_vs_val_extrap_delta is not None
+            and np.isfinite(test_extrap_frac)
+            and np.isfinite(val_extrap_frac)
+            and (test_extrap_frac - val_extrap_frac) > max_test_vs_val_extrap_delta
+        ):
+            risky = True
+        if min_fit_range is not None and np.isfinite(test_fit_range) and test_fit_range < min_fit_range:
+            risky = True
+        if max_test_range_ratio is not None and np.isfinite(test_range_ratio) and test_range_ratio > max_test_range_ratio:
+            risky = True
+        if risky:
+            remove.add(id(candidate))
+
+    filtered = [candidate for candidate in candidates if id(candidate) not in remove]
+    return filtered or candidates
 
 
 def train_and_ensemble(
@@ -390,6 +704,7 @@ def train_and_ensemble(
             candidate,
             str(model_cfg.get("FUSION_RANK", "mae")).strip().lower(),
             priority_patterns,
+            model_cfg,
         ),
     )
 
@@ -432,14 +747,25 @@ def train_and_ensemble(
         for candidate in candidates:
             candidate.val_metrics = compute_metrics(selection_y, np.asarray(candidate.val_pred, dtype=np.float32)[selection_mask])
     rank_mode = str(model_cfg.get("FUSION_RANK", "mae")).strip().lower()
-    candidates = sorted(candidates, key=lambda candidate: _sort_key(candidate, rank_mode, priority_patterns))
+    candidates = sorted(candidates, key=lambda candidate: _sort_key(candidate, rank_mode, priority_patterns, model_cfg))
     candidates = [candidate for candidate in candidates if _is_valid_candidate(candidate, expected_val_len=len(ctx.y_val_sec))]
     if not candidates:
         raise ValueError("No valid ensemble candidates were produced.")
+    candidates = _filter_low_iqr_candidates(candidates, model_cfg, ctx.y_train_sec)
+    candidates = _filter_close_linear_prior_calibration_candidates(
+        candidates,
+        model_cfg,
+        target_rows=len(ctx.X_train) + len(ctx.X_val) + len(ctx.X_test),
+    )
+    candidates = _filter_risky_linear_prior_calibration_candidates(candidates, model_cfg)
     if bool(model_cfg.get("FUSION_EXCLUSIVE_PRIORITY", False)) and priority_patterns:
-        best_priority = min(_priority_rank(str(candidate.name), priority_patterns) for candidate in candidates)
+        best_priority = min(_priority_rank_for_candidate(candidate, priority_patterns, model_cfg) for candidate in candidates)
         if best_priority < len(priority_patterns):
-            candidates = [candidate for candidate in candidates if _priority_rank(str(candidate.name), priority_patterns) == best_priority]
+            candidates = [
+                candidate
+                for candidate in candidates
+                if _priority_rank_for_candidate(candidate, priority_patterns, model_cfg) == best_priority
+            ]
     max_val_mae_ratio = float(model_cfg.get("FUSION_MAX_VAL_MAE_RATIO", 0.0) or 0.0)
     if max_val_mae_ratio > 0.0:
         best_mae = min(float(candidate.val_metrics.get("mae", float("inf"))) for candidate in candidates)
@@ -478,6 +804,19 @@ def train_and_ensemble(
             "selected": bool(abs(weight) > 1e-12),
             "weight": weight,
         }
+        prior_diag = _prior_calibration_diagnostics(candidate)
+        if prior_diag:
+            row.update(
+                {
+                    "prior_cal_mode": str(prior_diag.get("mode", "")),
+                    "prior_cal_test_slope_abs_max": _diag_float(prior_diag, "test", "slope_abs_max"),
+                    "prior_cal_test_extrap_frac_max": _diag_float(prior_diag, "test", "eval_extrapolation_frac_max"),
+                    "prior_cal_test_extrap_ratio_max": _diag_float(prior_diag, "test", "eval_extrapolation_ratio_max"),
+                    "prior_cal_test_fit_pred_range_min": _diag_float(prior_diag, "test", "fit_pred_range_min"),
+                    "prior_cal_test_range_ratio_max": _diag_float(prior_diag, "test", "eval_to_fit_range_ratio_max"),
+                }
+            )
+        _append_similarity_diagnostics(row, candidate)
         if include_test_diagnostics and ctx.y_test_sec is not None:
             test_metrics = compute_metrics(ctx.y_test_sec, candidate.test_pred)
             row.update(
@@ -489,11 +828,32 @@ def train_and_ensemble(
         candidate_diagnostics.append(row)
     pred_val = val_mat_full @ weights
     pred_test = test_mat @ weights
+    pre_quantile_row = {
+        "rank": int(-1),
+        "name": "FUSION_PRE_QUANTILE",
+        "val_mae": float(compute_metrics(ctx.y_val_sec, pred_val).get("mae", float("nan"))),
+        "val_r2": float(compute_metrics(ctx.y_val_sec, pred_val).get("r2", float("nan"))),
+        "selected": True,
+        "weight": 1.0,
+    }
+    if include_test_diagnostics and ctx.y_test_sec is not None:
+        test_metrics = compute_metrics(ctx.y_test_sec, pred_test)
+        pre_quantile_row.update(
+            {
+                "test_mae": float(test_metrics.get("mae", float("nan"))),
+                "test_r2": float(test_metrics.get("r2", float("nan"))),
+            }
+        )
+    candidate_diagnostics.append(pre_quantile_row)
     fusion_quantile_rules = _parse_fusion_target_quantile_rules(model_cfg.get("FUSION_TARGET_QUANTILE_RULES"))
     if fusion_quantile_rules:
         train_tokens, val_tokens, test_tokens = _split_context_tokens(ctx)
         all_target_tokens = train_tokens + val_tokens + test_tokens
         blend = float(model_cfg.get("FUSION_TARGET_QUANTILE_BLEND", 1.0))
+        max_shift_sec = float(model_cfg.get("FUSION_TARGET_QUANTILE_MAX_SHIFT_SEC", 0.0) or 0.0)
+        max_shift_iqr_mult = float(model_cfg.get("FUSION_TARGET_QUANTILE_MAX_SHIFT_REF_IQR_MULT", 0.0) or 0.0)
+        val_quantile_events: list[dict[str, Any]] = []
+        test_quantile_events: list[dict[str, Any]] = []
         pred_val = _apply_fusion_target_quantile_rules(
             pred_val,
             val_tokens,
@@ -501,6 +861,9 @@ def train_and_ensemble(
             all_target_tokens,
             fusion_quantile_rules,
             blend,
+            diagnostics=val_quantile_events,
+            max_abs_shift=max_shift_sec,
+            max_shift_ref_iqr_mult=max_shift_iqr_mult,
         )
         pred_test = _apply_fusion_target_quantile_rules(
             pred_test,
@@ -509,6 +872,9 @@ def train_and_ensemble(
             all_target_tokens,
             fusion_quantile_rules,
             blend,
+            diagnostics=test_quantile_events,
+            max_abs_shift=max_shift_sec,
+            max_shift_ref_iqr_mult=max_shift_iqr_mult,
         )
         row = {
             "rank": int(0),
@@ -518,6 +884,8 @@ def train_and_ensemble(
             "selected": True,
             "weight": 1.0,
         }
+        row.update(_summarize_quantile_rule_events("val", val_quantile_events))
+        row.update(_summarize_quantile_rule_events("test", test_quantile_events))
         if include_test_diagnostics and ctx.y_test_sec is not None:
             test_metrics = compute_metrics(ctx.y_test_sec, pred_test)
             row.update(

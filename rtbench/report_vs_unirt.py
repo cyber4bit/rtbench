@@ -292,6 +292,7 @@ def _overall_assessment_lines(
     significance: pd.DataFrame,
     *,
     mode: str,
+    n_model: int,
 ) -> list[str]:
     if dataset_stats.empty:
         return ["- No dataset-level results were available for overall assessment."]
@@ -341,9 +342,12 @@ def _overall_assessment_lines(
                 else "do not claim overall superiority over Uni-RT because at least one core average metric is worse."
             )
         )
-    lines.append(
-        "- Fairness caveat: our result uses 14 per-dataset models, whereas Uni-RT reports one unified model for the chromatographic mode."
-    )
+    if int(n_model) == 1:
+        lines.append("- Fairness note: our result reports nModel=1, matching Uni-RT's one-model chromatographic-mode setting.")
+    else:
+        lines.append(
+            f"- Fairness caveat: our result uses nModel={int(n_model)}, whereas Uni-RT reports one unified model for the chromatographic mode."
+        )
     return lines
 
 
@@ -582,7 +586,7 @@ def write_unirt_report(
         _markdown_table(cross_summary),
         "",
         "## Overall Assessment",
-        *_overall_assessment_lines(dataset_stats, significance, mode=mode),
+        *_overall_assessment_lines(dataset_stats, significance, mode=mode, n_model=n_model),
         "",
         "## Dataset-Level Comparison",
         _markdown_table(dataset_comparison)
