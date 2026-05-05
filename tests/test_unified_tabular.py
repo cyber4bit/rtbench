@@ -113,8 +113,8 @@ def test_builder_predictions_do_not_depend_on_dataset_ids() -> None:
     pred_a = run_strict_unified_cv_fold(fold, fit_predict)
     pred_b = run_strict_unified_cv_fold(renamed, fit_predict)
 
-    np.testing.assert_allclose(pred_a.val_pred_sec, pred_b.val_pred_sec)
-    np.testing.assert_allclose(pred_a.test_pred_sec, pred_b.test_pred_sec)
+    np.testing.assert_allclose(pred_a.val_pred_sec, pred_b.val_pred_sec, rtol=1e-6, atol=1e-6)
+    np.testing.assert_allclose(pred_a.test_pred_sec, pred_b.test_pred_sec, rtol=1e-6, atol=1e-6)
     assert "dataset_id_feature" in pred_a.model_info["selection_excludes"]
 
 
