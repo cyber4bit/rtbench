@@ -495,8 +495,10 @@ def cleanup_tmp_outputs(project_root: Path, *, delete: bool = False) -> list[Pat
 
 class ExperimentRegistry:
     def __init__(self, project_root: Path, *, registry_path: Path | None = None) -> None:
-        self.project_root = Path(project_root).resolve()
-        self.registry_path = _resolve_registry_path(self.project_root, registry_path)
+        project_root_path = Path(project_root)
+        project_root_abs = project_root_path if project_root_path.is_absolute() else Path.cwd() / project_root_path
+        self.project_root = project_root_abs.resolve()
+        self.registry_path = _resolve_registry_path(project_root_abs, registry_path)
 
     @property
     def path(self) -> Path:
