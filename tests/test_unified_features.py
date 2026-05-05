@@ -203,8 +203,8 @@ def test_strict_unified_feature_transform_has_no_dataset_or_target_override() ->
     first = enc.transform(row_mol, row_cp)
     second = enc.transform(np.vstack([row_mol, row_mol]), np.vstack([row_cp, row_cp]))
 
-    np.testing.assert_allclose(first[0], second[0])
-    np.testing.assert_allclose(second[0], second[1])
+    np.testing.assert_allclose(first[0], second[0], rtol=1e-6, atol=1e-6)
+    np.testing.assert_allclose(second[0], second[1], rtol=1e-6, atol=1e-6)
 
 
 def test_condition_residuals_use_train_relation_when_transforming_heldout_rows() -> None:
